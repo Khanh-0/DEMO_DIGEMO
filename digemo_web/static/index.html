@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <meta name="description" content="DiGemo Emotion Studio — webcam + microphone + multimodal emotion recognition with a trained DiGemo checkpoint.">
+  <title>DiGemo · Emotion Studio</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="ambient orb-one" aria-hidden="true"></div>
+  <div class="ambient orb-two" aria-hidden="true"></div>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="13" rx="3"/><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3M8 22h8"/></symbol>
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="5" width="15" height="14" rx="3"/><path d="m17 10 5-3v10l-5-3"/></symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 18V5a3 3 0 0 0-5.7-1.3A4 4 0 0 0 4 10a4 4 0 0 0 1 7 3 3 0 0 0 7 1Zm0 0V5a3 3 0 0 1 5.7-1.3A4 4 0 0 1 20 10a4 4 0 0 1-1 7 3 3 0 0 1-7 1Z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="i-stop" viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="2"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-1.7 5M20 4v7h-7"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 4 4L19 6"/></symbol>
+    <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3Z M12 9v5 M12 18v.1"/></symbol>
+    <symbol id="i-chevron" viewBox="0 0 24 24"><path d="m9 5 7 7-7 7"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 21 6v6c0 5.3-3.7 8.9-9 10-5.3-1.1-9-4.7-9-10V6l9-4Z"/><path d="m9 12 2 2 4-4"/></symbol>
+  </svg>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">D<span>.</span></div><div class="brand-name">DiGemo<span>Studio</span><small>MULTIMODAL AI LAB</small></div></div>
+      <p class="side-caption">WORKSPACE</p>
+      <a class="side-link active" href="#studio"><svg class="icon"><use href="#i-brain"/></svg><span>Emotion Studio</span><span class="active-dot"></span></a>
+      <a class="side-link" href="#history"><svg class="icon"><use href="#i-clock"/></svg><span>Lịch sử phân tích</span></a>
+      <a class="side-link" href="#pipeline"><svg class="icon"><use href="#i-sparkle"/></svg><span>Model pipeline</span></a>
+      <div class="sidebar-bottom">
+        <div class="backend-panel">
+          <div class="status-header"><span class="green-dot" id="sideDot"></span><span id="sideStatus">Đang kết nối...</span></div>
+          <div class="back-row"><span>Dataset</span><strong>MELD</strong></div>
+          <div class="back-row"><span>Runtime</span><strong id="sideDevice">—</strong></div>
+          <div class="back-row"><span>ASR</span><strong id="sideAsr">—</strong></div>
+        </div>
+        <div class="privacy-note"><svg class="icon"><use href="#i-shield"/></svg><span>Dữ liệu xử lý trực tiếp trên PC của bạn. Phiên này không lưu video/âm thanh.</span></div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Emotion Studio</strong></div><div class="top-right"><div class="live-indicator"><span class="live-circle"></span> Local inference</div><span class="avatar">AI</span></div></div>
+      <section class="intro" id="studio">
+        <div class="eyebrow"><svg class="icon"><use href="#i-sparkle"/></svg> REAL-TIME MULTIMODAL EMOTION RECOGNITION</div>
+        <h1>Hiểu cảm xúc, <span>qua từng khoảnh khắc.</span></h1>
+        <p>Microphone + webcam + giọng nói tiếng Anh, hợp nhất qua DiGemo đã huấn luyện trên MELD. Ghi một lượt nói, nhận kết quả ngay trên trình duyệt.</p>
+      </section>
+      <div class="dashboard-grid">
+        <section class="panel capture-card" aria-label="Thu hình ảnh và âm thanh">
+          <div class="panel-heading"><div><div class="section-kicker">LIVE CAPTURE</div><h2>Camera & Microphone</h2></div><span class="tag" id="captureState">CHƯA KẾT NỐI</span></div>
+          <div class="camera-view" id="cameraView">
+            <video id="video" playsinline autoplay muted></video>
+            <div class="camera-placeholder" id="cameraPlaceholder"><div class="camera-symbol"><svg class="icon"><use href="#i-video"/></svg></div><strong>Webcam preview</strong><span>Cho phép camera và micro để bắt đầu</span></div>
+            <div class="camera-overlay"><div class="rec-badge" id="recBadge"><span class="rec-dot"></span><span id="recText">READY</span></div><span class="frame-info" id="frameInfo">CAM 01 · 8 FRAMES</span></div>
+            <div class="camera-bottom"><span id="timer">00:00</span><span class="capture-caption" id="captureHint">Mỗi lượt tối đa 12 giây</span></div>
+          </div>
+          <div class="mic-meter"><div class="meter-icon"><svg class="icon"><use href="#i-mic"/></svg></div><div class="meter-info"><strong>Microphone input</strong><small id="micStatus">Chưa kích hoạt</small></div><canvas id="wave" width="170" height="40" aria-label="Biểu đồ cường độ âm thanh"></canvas></div>
+          <div class="capture-settings">
+            <div><label for="cameraSelect">Camera</label><select id="cameraSelect" aria-label="Chọn camera"><option value="">Mặc định</option></select></div>
+            <div><label for="micSelect">Microphone</label><select id="micSelect" aria-label="Chọn microphone"><option value="">Mặc định</option></select></div>
+          </div>
+          <label class="manual-switch"><input type="checkbox" id="manualMode"><span class="toggle" aria-hidden="true"></span><span>Nhập transcript thủ công <small>(tắt Whisper)</small></span></label>
+          <div id="manualBox" class="manual-box hidden"><label for="manualText">English transcript</label><textarea id="manualText" placeholder="I'm feeling great today..." rows="2" maxlength="1500"></textarea></div>
+          <div class="capture-actions"><button id="connectBtn" class="btn btn-secondary"><svg class="icon"><use href="#i-video"/></svg><span>Bật thiết bị</span></button><button id="recordBtn" class="btn btn-primary" disabled><svg class="icon"><use href="#i-mic"/></svg><span id="recordLabel">Bắt đầu nói</span></button></div>
+          <div class="privacy-line"><svg class="icon"><use href="#i-shield"/></svg> Trình duyệt chỉ gửi audio và 8 frame khi bạn kết thúc lượt ghi.</div>
+        </section>
+        <section class="panel results-card" aria-label="Kết quả cảm xúc">
+          <div class="panel-heading"><div><div class="section-kicker">INFERENCE OUTPUT</div><h2>Emotion Analysis</h2></div><span class="tag tag-purple">7 EMOTIONS</span></div>
+          <div class="empty-result" id="emptyResult"><div class="empty-illustration"><div class="empty-pulse p1"></div><div class="empty-pulse p2"></div><svg class="icon"><use href="#i-brain"/></svg></div><h3>Đang chờ lời nói đầu tiên</h3><p>Kết quả Text × Audio × Visual sẽ xuất hiện tại đây.</p><div class="waiting-dots"><i></i><i></i><i></i></div></div>
+          <div class="result-content hidden" id="resultContent">
+            <div class="sentiment-summary"><div class="emotion-avatar" id="emotionIcon">✨</div><div><div class="summary-label">CẢM XÚC DỰ ĐOÁN</div><h3 id="emotionName">Joy</h3><div class="confidence-inline"><span id="confidenceText">—</span> confidence · <span id="historyCount">0</span> utterances</div></div><div class="ring" id="confidenceRing"><div class="ring-inner"><strong id="ringValue">—</strong><small>CONF.</small></div></div></div>
+            <div class="transcript-box"><div class="small-row"><span>TRANSCRIPT</span><span id="transcriptSource">WHISPER ASR</span></div><p id="transcriptOutput"></p></div>
+            <div class="chart-head"><h3>Emotion distribution</h3><span>SOFTMAX</span></div>
+            <div class="probability-list" id="probabilityList"></div>
+            <div class="latency-row"><div><small>ASR / Input</small><strong id="asrLatency">—</strong></div><div><small>Encoders</small><strong id="encoderLatency">—</strong></div><div><small>DiGemo</small><strong id="modelLatency">—</strong></div></div>
+          </div>
+        </section>
+      </div>
+      <section class="panel history-panel" id="history"><div class="panel-heading history-head"><div><div class="section-kicker">SESSION ACTIVITY</div><h2>Lịch sử hội thoại <span class="count" id="turnCount">0</span></h2></div><button id="resetBtn" class="btn btn-outline"><svg class="icon"><use href="#i-refresh"/></svg> Reset dialogue</button></div><div class="history-empty" id="historyEmpty">Chưa có utterance nào. Bắt đầu ghi âm để theo dõi quá trình thay đổi cảm xúc.</div><div id="historyList" class="history-list"></div></section>
+      <section class="pipeline" id="pipeline"><div><div class="section-kicker">UNDER THE HOOD</div><h2>Một mô hình. Ba modality.</h2><p>Không dùng embedding giả: đầu vào mới được trích xuất qua đúng bộ encoder và preprocessing tương thích checkpoint MELD.</p></div><div class="pipeline-pills"><div class="pipe-step"><span>01</span><strong>Whisper</strong><small>Speech → Text</small></div><span class="pipe-arrow">→</span><div class="pipe-step"><span>02</span><strong>RoBERTa · Wav2Vec2 · DenseNet</strong><small>1024 · 300 · 342</small></div><span class="pipe-arrow">→</span><div class="pipe-step"><span>03</span><strong>DiGemo</strong><small>Graph + Fusion</small></div></div></section>
+      <footer><span>DiGemo Emotion Studio · Research prototype</span><span>Turn-based inference · English / MELD · Not a clinical assessment</span></footer>
+    </main>
+  </div>
+  <div class="toast hidden" id="toast" role="alert"><svg class="icon"><use href="#i-alert"/></svg><span id="toastText"></span><button id="toastClose" aria-label="Đóng">×</button></div>
+  <script defer src="/static/app.js"></script>
+</body>
+</html>
