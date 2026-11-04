@@ -189,25 +189,41 @@ def record_turn(cap, microphone, max_seconds: float):
     return wav, frames
 
 
+
+""" 1 người """
+# def model_predict(model, features, speaker_index, n_speakers, device):
+#     n = len(features)
+#     if n == 0:
+#         raise ValueError('Empty utterance history')
+#     def stacked(col):
+#         return torch.from_numpy(np.stack([f[col] for f in features])).unsqueeze(1).to(device)
+#     qmask = torch.zeros((n, 1, n_speakers), dtype=torch.float32, device=device)
+#     qmask[:, 0, speaker_index] = 1.
+#     umask = torch.ones((n, 1), dtype=torch.float32, device=device)
+#     logits, _, _, _, _ = model(stacked('text'), stacked('visual'), stacked('audio'),
+#                               umask, qmask, [n])
+#     prob = torch.softmax(logits[-1], -1).float().cpu().numpy()
+#     return int(prob.argmax()), prob
+
+"""2 người"""
 @torch.inference_mode()
-def model_predict(model, features, speaker_index, n_speakers, device):
+def model_predict(model, features, speaker_indices, n_speakers, device):
     n = len(features)
-    if n == 0:
-        raise ValueError('Empty utterance history')
     def stacked(col):
         return torch.from_numpy(np.stack([f[col] for f in features])).unsqueeze(1).to(device)
     qmask = torch.zeros((n, 1, n_speakers), dtype=torch.float32, device=device)
-    qmask[:, 0, speaker_index] = 1.
+    for i, s in enumerate(speaker_indices):
+        qmask[i, 0, s] = 1.
     umask = torch.ones((n, 1), dtype=torch.float32, device=device)
     logits, _, _, _, _ = model(stacked('text'), stacked('visual'), stacked('audio'),
-                              umask, qmask, [n])
+                               umask, qmask, [n])
     prob = torch.softmax(logits[-1], -1).float().cpu().numpy()
     return int(prob.argmax()), prob
 
 
 def main():
     ap = argparse.ArgumentParser(description='Live MELD DiGemo emotion demo')
-    ap.add_argument('--checkpoint', default='checkpoints/best_model_MELD_260.pth')
+    ap.add_argument('--checkpoint', default='checkpoints/best_model_MELD_9161.pth')
     ap.add_argument('--features-dir', type=Path, default=Path('features'))
     ap.add_argument('--roberta-checkpoint', type=Path, default=None)
     ap.add_argument('--text-model', default='roberta-large')

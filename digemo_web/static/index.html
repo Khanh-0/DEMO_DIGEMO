@@ -63,6 +63,14 @@
             <div><label for="cameraSelect">Camera</label><select id="cameraSelect" aria-label="Chọn camera"><option value="">Mặc định</option></select></div>
             <div><label for="micSelect">Microphone</label><select id="micSelect" aria-label="Chọn microphone"><option value="">Mặc định</option></select></div>
           </div>
+          <div class="speaker-row">
+          <label>Người nói lượt này</label>
+          <div class="seg" id="speakerSeg" role="radiogroup" aria-label="Chọn speaker">
+            <button type="button" class="seg-btn active" data-speaker="A" role="radio" aria-checked="true">Speaker A</button>
+            <button type="button" class="seg-btn" data-speaker="B" role="radio" aria-checked="false">Speaker B</button>
+          </div>
+          <label class="manual-switch inline"><input type="checkbox" id="autoAlternate" checked><span class="toggle" aria-hidden="true"></span><span>Tự đổi A/B sau mỗi lượt</span></label>
+        </div>
           <label class="manual-switch"><input type="checkbox" id="manualMode"><span class="toggle" aria-hidden="true"></span><span>Nhập transcript thủ công <small>(tắt Whisper)</small></span></label>
           <div id="manualBox" class="manual-box hidden"><label for="manualText">English transcript</label><textarea id="manualText" placeholder="I'm feeling great today..." rows="2" maxlength="1500"></textarea></div>
           <div class="capture-actions"><button id="connectBtn" class="btn btn-secondary"><svg class="icon"><use href="#i-video"/></svg><span>Bật thiết bị</span></button><button id="recordBtn" class="btn btn-primary" disabled><svg class="icon"><use href="#i-mic"/></svg><span id="recordLabel">Bắt đầu nói</span></button></div>
@@ -73,7 +81,18 @@
           <div class="empty-result" id="emptyResult"><div class="empty-illustration"><div class="empty-pulse p1"></div><div class="empty-pulse p2"></div><svg class="icon"><use href="#i-brain"/></svg></div><h3>Đang chờ lời nói đầu tiên</h3><p>Kết quả Text × Audio × Visual sẽ xuất hiện tại đây.</p><div class="waiting-dots"><i></i><i></i><i></i></div></div>
           <div class="result-content hidden" id="resultContent">
             <div class="sentiment-summary"><div class="emotion-avatar" id="emotionIcon">✨</div><div><div class="summary-label">CẢM XÚC DỰ ĐOÁN</div><h3 id="emotionName">Joy</h3><div class="confidence-inline"><span id="confidenceText">—</span> confidence · <span id="historyCount">0</span> utterances</div></div><div class="ring" id="confidenceRing"><div class="ring-inner"><strong id="ringValue">—</strong><small>CONF.</small></div></div></div>
-            <div class="transcript-box"><div class="small-row"><span>TRANSCRIPT</span><span id="transcriptSource">WHISPER ASR</span></div><p id="transcriptOutput"></p></div>
+            <div class="transcript-box"><div class="small-row"><span>TRANSCRIPT</span><span id="transcriptSource">WHISPER ASR</span></div><p id="transcriptOutput"></p>
+              <div class="transcript-tools">
+                <button id="editTranscriptBtn" class="btn btn-outline" type="button">Sửa transcript</button>
+                <div id="editBox" class="edit-box hidden">
+                  <textarea id="editText" rows="2" maxlength="1500" placeholder="Nhập lại câu đúng..."></textarea>
+                  <div class="edit-actions">
+                    <button id="applyEditBtn" class="btn btn-primary" type="button">Phân tích lại</button>
+                    <button id="cancelEditBtn" class="btn btn-secondary" type="button">Hủy</button>
+                  </div>
+                </div>
+              </div>
+            </div>
             <div class="chart-head"><h3>Emotion distribution</h3><span>SOFTMAX</span></div>
             <div class="probability-list" id="probabilityList"></div>
             <div class="latency-row"><div><small>ASR / Input</small><strong id="asrLatency">—</strong></div><div><small>Encoders</small><strong id="encoderLatency">—</strong></div><div><small>DiGemo</small><strong id="modelLatency">—</strong></div></div>

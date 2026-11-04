@@ -27,7 +27,7 @@ Ví dụ bố trí các tệp tại **thư mục gốc của repository**:
 ```text
 DiGemo-Demo/
 ├── checkpoints/
-│   └── best_model_MELD_260.pth       # TẢI TỪ GOOGLE DRIVE
+│   └── best_model_MELD_9161.pth       # TẢI TỪ GOOGLE DRIVE
 ├── digemo_web/                       # Giao diện web và backend
 │   └── app.py                        # Kiểm tra tên/đường dẫn thực tế trong repo
 ├── MELD_pro/
@@ -60,7 +60,7 @@ Sau khi tải, giải nén hoặc chép từng tệp theo bảng bên dưới:
 
 | Tên tệp | Nơi đặt trong repo | Công dụng |
 | --- | --- | --- |
-| `best_model_MELD_260.pth` | `checkpoints/best_model_MELD_260.pth` | Checkpoint chính của DiGemo trên MELD. |
+| `best_model_MELD_9161.pth` | `checkpoints/best_model_MELD_9161.pth` | Checkpoint chính của DiGemo trên MELD. |
 | `roberta_meld_ft.pt` | `MELD_pro/features/roberta_meld_ft.pt` | Trọng số RoBERTa-large đã fine-tune để trích xuất đặc trưng văn bản. |
 | `online_audio_transform.joblib` | `MELD_pro/features/online_audio_transform.joblib` | Biến đổi đặc trưng audio về 300 chiều, khớp với checkpoint. |
 | `online_visual_transform.joblib` | `MELD_pro/features/online_visual_transform.joblib` | Biến đổi đặc trưng visual về 342 chiều, khớp với checkpoint. |
@@ -80,7 +80,7 @@ Mở PowerShell tại thư mục gốc và chạy:
 
 ```powershell
 @(
-  ".\checkpoints\best_model_MELD_260.pth",
+  ".\checkpoints\best_model_MELD_9161.pth",
   ".\MELD_pro\features\roberta_meld_ft.pt",
   ".\MELD_pro\features\online_audio_transform.joblib",
   ".\MELD_pro\features\online_visual_transform.joblib"
@@ -145,7 +145,7 @@ Nếu chưa nhận diện được `ffmpeg`, hãy cài FFmpeg rồi thêm thư m
 Nếu trong repo có file `digemo_web/app.py`, thử chạy:
 
 ```powershell
-python .\digemo_web\app.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
+python .\digemo_web\app.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
 ```
 
 Nếu đường dẫn khác, hãy sửa `digemo_web\app.py` thành vị trí thật của `app.py`; có thể tìm bằng:
@@ -165,7 +165,7 @@ Cấp quyền microphone/camera, chọn Speaker A/B, ghi từng lượt nói b�
 Đây là cách chạy được đối chiếu từ mã nguồn `live_erc.py` đã cung cấp. Đảm bảo các file Python như sơ đồ ở mục 2 và checkpoint ở mục 3 đã sẵn sàng.
 
 ```powershell
-python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --features-dir ".\MELD_pro\features" --torch-device auto --window 10
+python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --torch-device auto --window 10
 ```
 
 **Cách dùng:**
@@ -178,7 +178,7 @@ python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --feat
 Nếu muốn nhập bản ghi lời nói thủ công (không chạy Whisper):
 
 ```powershell
-python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --features-dir ".\MELD_pro\features" --manual-transcript
+python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --manual-transcript
 ```
 
 Nếu microphone/camera không đúng thiết bị:

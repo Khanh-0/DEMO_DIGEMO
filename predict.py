@@ -12,8 +12,8 @@ Layout:
           confusion matrix.
 
 Quick start:
-    python predict.py --checkpoint ./checkpoints/best_model_IEMOCAP_260.pth
-    python predict.py --checkpoint ./checkpoints/best_model_IEMOCAP_260.pth --task confusion
+    python predict.py --checkpoint ./checkpoints/best_model_IEMOCAP_9161.pth
+    python predict.py --checkpoint ./checkpoints/best_model_IEMOCAP_9161.pth --task confusion
     python predict.py --checkpoint <path> --task confusion --feature_path ./features/iemocap_multi_features.pkl
 """
 
@@ -478,7 +478,7 @@ def plot_confusion_from_checkpoint(checkpoint_path, feature_path=None, batch_siz
 def parse_args():
     p = argparse.ArgumentParser(description="DiGemo predict / complexity / confusion-matrix utility")
     p.add_argument("--checkpoint", type=str,
-                   default="./checkpoints/best_model_IEMOCAP_260.pth",
+                   default="./checkpoints/best_model_IEMOCAP_9161.pth",
                    help="Path to the checkpoint .pth file")
     p.add_argument("--task", choices=["complexity", "predict", "confusion"],
                    default="complexity", help="Task to run")

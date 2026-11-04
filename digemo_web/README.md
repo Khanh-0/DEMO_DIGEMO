@@ -11,7 +11,7 @@ E:\Do_an\DiGemo\
 ├── model.py
 ├── module.py
 ├── recover_feature_transforms.py
-├── checkpoints\best_model_MELD_260.pth
+├── checkpoints\best_model_MELD_9161.pth
 ├── MELD_pro\features\
 │   ├── roberta_large_meld_ft.pt (hoặc roberta_meld_ft.pt)
 │   ├── online_audio_transform.joblib
@@ -44,7 +44,7 @@ Các thư viện RoBERTa, Wav2Vec2, DenseNet, PyTorch, OpenCV, scikit-learn và 
 Chạy **một dòng** ở thư mục DiGemo:
 
 ```powershell
-python .\digemo_web\app.py --checkpoint checkpoints/best_model_MELD_260.pth --features-dir MELD_pro/features --host 127.0.0.1 --port 8000
+python .\digemo_web\app.py --checkpoint checkpoints/best_model_MELD_9161.pth --features-dir MELD_pro/features --host 127.0.0.1 --port 8000
 ```
 
 Khi PowerShell in `[web] Ready!`, mở:

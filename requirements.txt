@@ -1,21 +1,27 @@
-# Python 3.9+; install torch+torchvision compatible pair separately as described in README.
-# For joblib PCA/Scaler: matching the original sender's scikit-learn is safest.
-numpy>=1.23,<2
-scipy>=1.9,<2
-pandas>=1.5,<3
-scikit-learn>=1.3,<1.7
-joblib>=1.2,<2
-transformers>=4.30,<5
-Pillow>=9,<12
-opencv-python>=4.7,<5
+# Python 3.9 / 3.10. Cài torch + torchvision TRƯỚC, riêng (xem lệnh bên dưới).
+
+# --- Web server ---
 fastapi>=0.110,<1
 uvicorn>=0.27,<1
 python-multipart>=0.0.9
+
+# --- Speech-to-text ---
 faster-whisper>=1.0,<2
-numpy==1.23
-pandas==1.5
-scikit_learn==1.6.1
-torch==2.0.0
+
+# --- Model / feature extraction ---
+numpy==1.26.4
+scipy==1.11.4
+pandas==1.5.3
+scikit-learn==1.6.1
+joblib>=1.2,<2
+transformers==4.41.2
+Pillow>=9,<12
+opencv-python==4.10.0.84
+
+# --- Chỉ cần cho live_erc.py bản terminal ---
+sounddevice
+
+# --- Chỉ cần cho predict.py / train (web demo không cần) ---
 tensorboardX==2.6.2.2
 matplotlib==3.7.1
 seaborn==0.12.2

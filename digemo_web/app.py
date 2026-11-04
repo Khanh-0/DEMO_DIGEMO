@@ -1,7 +1,7 @@
 """DiGemo MELD web UI — reuse the original feature extractors and DiGemo checkpoint.
 
 Run from DiGemo root (PowerShell):
-  python ./digemo_web/app.py --checkpoint checkpoints/best_model_MELD_260.pth --features-dir MELD_pro/features
+  python ./digemo_web/app.py --checkpoint checkpoints/best_model_MELD_9161.pth --features-dir MELD_pro/features
 Browser: http://127.0.0.1:8000
 """
 from __future__ import annotations
@@ -104,7 +104,8 @@ class DiGemoEngine:
         self.labels = EMOTIONS
         self.device = choose_torch_device(config.torch_device)
         self.window = config.window
-        self.speaker_index = config.speaker_index
+        self.speaker_a = config.speaker_a_index   # thay cho self.speaker_index
+        self.speaker_b = config.speaker_b_index
         self.model, cfg, dims, classes, ns, _ = load_model_from_checkpoint(
             str(config.checkpoint), self.device)
         if cfg.dataset != 'MELD' or dims != [1024, 342, 300] or classes != 7 or ns != 9:
@@ -132,6 +133,7 @@ class DiGemoEngine:
             'ready': True, 'device': self.device, 'checkpoint': self.config.checkpoint.name,
             'asr': self.config.whisper_model, 'dataset': 'MELD',
             'window': self.window, 'emotions': self.labels,
+            'speakers': {'A': self.speaker_a, 'B': self.speaker_b},
         }
 
     def prune_sessions(self):
@@ -160,8 +162,10 @@ class DiGemoEngine:
             return {'ok': True, 'history_size': 0}
 
     def predict(self, session_id: str, audio_bytes: bytes, image_bytes: list[bytes],
-                manual_transcript: str):
+                manual_transcript: str, speaker: str = 'A'):
         from live_erc import model_predict
+        if speaker not in ('A','B'):
+            raise ValueError('Speaker phải là A hoặc B.')
         with self.lock:  # serialize GPU inference + per-session history mutation
             session = self.sessions.get(session_id)
             if session is None:
@@ -191,19 +195,22 @@ class DiGemoEngine:
             if (t.shape, v.shape, a.shape) != ((1024,), (342,), (300,)):
                 raise RuntimeError(f'Embedding sai kích thước: T{t.shape}, V{v.shape}, A{a.shape}')
             enc_time = time.perf_counter() - t1
-            current = {'text': t, 'visual': v, 'audio': a}
-            # Only append after all processing has succeeded. Inference failure leaves history unchanged.
+
+            spk = self.speaker_a if speaker == 'A' else self.speaker_b
+            current = {'text': t, 'visual': v, 'audio': a, 'speaker': spk}  # tạo MỘT lần, có speaker
             candidate = deque(session.history, maxlen=self.window)
             candidate.append(current)
+
             t2 = time.perf_counter()
-            pred, prob = model_predict(self.model, candidate, self.speaker_index,
-                                       self.ns, self.device)
+            pred, prob = model_predict(self.model, candidate,
+                                    [f['speaker'] for f in candidate], self.ns, self.device)
             digemo_time = time.perf_counter() - t2
             session.history = candidate
             session.last_seen = time.monotonic()
             ranking = np.argsort(prob)[::-1].tolist()
             return {
                 'transcript': transcript, 'transcript_mode': transcript_mode,
+                'speaker': speaker,
                 'emotion': self.labels[pred], 'confidence': round(float(prob[pred]) * 100, 2),
                 'probabilities': [
                     {'label': label, 'percent': round(float(prob[i]) * 100, 2)}
@@ -222,10 +229,49 @@ class DiGemoEngine:
                 'frame_count': len(frames),
             }
 
+    def correct(self, session_id: str, transcript: str):
+        from live_erc import model_predict
+        transcript = transcript.strip()
+        if not transcript:
+            raise ValueError('Transcript không được để trống.')
+        if len(transcript) > 1500:
+            raise ValueError('Transcript quá dài (giới hạn 1500 ký tự).')
+        with self.lock:
+            session = self.sessions.get(session_id)
+            if session is None:
+                raise ValueError('Phiên không tồn tại hoặc đã hết hạn. Hãy tải lại trang.')
+            if not session.history:
+                raise ValueError('Chưa có lượt nào để sửa.')
+            t1 = time.perf_counter()
+            t = self.encoders.text(transcript)
+            enc_time = time.perf_counter() - t1
+            previous = list(session.history)
+            last = previous[-1]
+            candidate = deque(previous[:-1], maxlen=self.window)
+            candidate.append({**last, 'text': t})   # giữ nguyên audio, visual, speaker
+            t2 = time.perf_counter()
+            pred, prob = model_predict(self.model, candidate,
+                                       [f['speaker'] for f in candidate], self.ns, self.device)
+            digemo_time = time.perf_counter() - t2
+            session.history = candidate
+            session.last_seen = time.monotonic()
+            return {
+                'transcript': transcript, 'transcript_mode': 'edited',
+                'emotion': self.labels[pred], 'confidence': round(float(prob[pred]) * 100, 2),
+                'probabilities': [
+                    {'label': label, 'percent': round(float(prob[i]) * 100, 2)}
+                    for i, label in enumerate(self.labels)
+                ],
+                'history_size': len(candidate),
+                'latency_ms': {'asr': 0, 'encoders': round(enc_time * 1000),
+                               'digemo': round(digemo_time * 1000)},
+            }
 
 class SessionRequest(BaseModel):
     session_id: str
-
+class CorrectRequest(BaseModel):
+    session_id: str
+    transcript: str
 
 def create_app(engine=None) -> FastAPI:
     app = FastAPI(title='DiGemo Emotion Studio', version='1.0.0', docs_url=None, redoc_url=None)
@@ -250,6 +296,13 @@ def create_app(engine=None) -> FastAPI:
         return active_engine().new_session()
 
     @app.post('/api/reset')
+    
+    @app.post('/api/correct')
+    def correct(req: CorrectRequest):
+        try:
+            return active_engine().correct(req.session_id, req.transcript)
+        except (ValueError, RuntimeError) as exc:
+            raise HTTPException(status_code=400, detail=str(exc)) from exc   
     def reset(req: SessionRequest):
         try:
             return active_engine().reset(req.session_id)
@@ -258,14 +311,15 @@ def create_app(engine=None) -> FastAPI:
 
     @app.post('/api/predict')
     async def predict(session_id: str = Form(...), transcript: str = Form(''),
-                      audio: UploadFile = File(...), frames: list[UploadFile] = File(...)):
+                    speaker: str = Form('A'),
+                    audio: UploadFile = File(...), frames: list[UploadFile] = File(...)):
         if len(frames) > 32:
             raise HTTPException(status_code=400, detail='Tối đa 32 frame webcam.')
         content = await audio.read(MAX_AUDIO_BYTES + 1)
         pictures = [await f.read(MAX_FRAME_BYTES + 1) for f in frames]
         try:
             return await run_in_threadpool(
-                active_engine().predict, session_id, content, pictures, transcript)
+                active_engine().predict, session_id, content, pictures, transcript, speaker)
         except (ValueError, RuntimeError) as exc:
             raise HTTPException(status_code=400, detail=str(exc)) from exc
         except Exception:
@@ -278,18 +332,23 @@ def create_app(engine=None) -> FastAPI:
 def main():
     import uvicorn
     parser = argparse.ArgumentParser(description='Host browser UI for the existing MELD DiGemo checkpoint')
-    parser.add_argument('--checkpoint', default='checkpoints/best_model_MELD_260.pth')
+    parser.add_argument('--checkpoint', default='checkpoints/best_model_MELD_9161.pth')
     parser.add_argument('--features-dir', default='MELD_pro/features')
+    parser.add_argument('--speaker-a-index', type=int, default=0)
+    parser.add_argument('--speaker-b-index', type=int, default=1)
     parser.add_argument('--roberta-checkpoint', default=None)
     parser.add_argument('--torch-device', choices=('auto', 'cuda', 'cpu'), default='auto')
     parser.add_argument('--whisper-model', default='base.en')
     parser.add_argument('--window', type=int, default=10)
-    parser.add_argument('--speaker-index', type=int, default=8)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8000)
     args = parser.parse_args()
-    if not 1 <= args.window <= 100 or not 0 <= args.speaker_index <= 8:
-        parser.error('--window must be 1..100 and --speaker-index must be 0..8')
+    if not 1 <= args.window <= 100:
+        parser.error('--window must be 1..100')
+    if not all(0 <= x <= 8 for x in (args.speaker_a_index, args.speaker_b_index)):
+        parser.error('--speaker-a-index và --speaker-b-index phải trong khoảng 0..8')
+    if args.speaker_a_index == args.speaker_b_index:
+        parser.error('Speaker A và B phải dùng hai slot khác nhau')
     args.checkpoint = in_project(args.checkpoint)
     args.features_dir = in_project(args.features_dir)
     candidates = [args.features_dir / 'roberta_meld_ft.pt',

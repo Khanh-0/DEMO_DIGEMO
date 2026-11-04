@@ -51,7 +51,7 @@ Nếu PowerShell báo không nhận diện lệnh `ffmpeg`, cần cài FFmpeg v�
 Từ thư mục gốc của demo, chạy:
 
 ```powershell
-python .\digemo_web_v2\app.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
+python .\digemo_web_v2\app.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
 ```
 
 Khi backend khởi động thành công, mở trình duyệt trên **chính máy đang chạy server** và truy cập:
@@ -78,7 +78,7 @@ Sau khi đã cài đặt môi trường và thư viện, những lần sử dụ
 
 ```powershell
 .\.venv\Scripts\Activate.ps1
-python .\digemo_web_v2\app.py --checkpoint ".\checkpoints\best_model_MELD_260.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
+python .\digemo_web_v2\app.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
 ```
 
 Mở **http://127.0.0.1:8001** để sử dụng demo.

@@ -8,7 +8,7 @@
     ready: false, sessionId: null, stream: null, recorder: null,
     analyzer: null, audioContext: null, animation: null,
     chunks: [], samples: [], sampler: null, timerInterval: null, startedAt: 0,
-    active: false, processing: false, turnLimit: 12, history: [],
+    active: false, processing: false, turnLimit: 12, history: [],speaker: 'A'
   };
   const api = async (path, options = {}) => {
     const r = await fetch(path, options);
@@ -29,6 +29,16 @@
     $('recBadge').classList.toggle('active', mode === 'recording');
     $('recText').textContent = mode === 'recording' ? 'REC' : mode === 'ready' ? 'LIVE' : 'READY';
   };
+  function setSpeaker(s) {
+    state.speaker = s;
+    document.querySelectorAll('.seg-btn').forEach(b => {
+      const on = b.dataset.speaker === s;
+      b.classList.toggle('active', on);
+      b.setAttribute('aria-checked', on);
+    });
+    document.activeElement?.blur();
+  }
+  const lockSpeaker = (flag) => document.querySelectorAll('.seg-btn').forEach(b => b.disabled = flag);
   function setProcessing(value) {
     state.processing = value;
     $('recordBtn').disabled = value || !state.stream || !state.ready;
@@ -36,6 +46,8 @@
     $('micSelect').disabled = value || state.active;
     $('cameraSelect').disabled = value || state.active;
     $('resetBtn').disabled = value || state.active;
+    lockSpeaker(value || state.active);
+    $('editTranscriptBtn').disabled = value;
     $('recordLabel').textContent = value ? 'Đang phân tích…' : state.active ? 'Kết thúc lượt' : 'Bắt đầu nói';
     if (value) setCaptureState('ĐANG XỬ LÝ');
     else if (state.stream) setCaptureState('SẴN SÀNG', 'ready');
@@ -150,6 +162,8 @@
       state.recorder.ondataavailable = event => {if(event.data.size) state.chunks.push(event.data);};
       state.recorder.onerror = event => toast(`Lỗi MediaRecorder: ${event.error?.message || 'Unknown error'}`);
       state.active = true;
+      lockSpeaker(true);
+
       state.startedAt = performance.now();
       state.recorder.start(200);
       await grabFrame();
@@ -203,11 +217,14 @@
     form.append('transcript',$('manualMode').checked ? $('manualText').value.trim() : '');
     form.append('audio',audioBlob,rec.mimeType.includes('ogg') ? 'audio.ogg' : 'audio.webm');
     selected.forEach((blob,i)=>form.append('frames',blob,`frame_${i}.jpg`));
+    const turnSpeaker = state.speaker;
+    form.append('speaker', turnSpeaker);
     $('frameInfo').textContent=`${selected.length} FRAMES · ${(performance.now()-state.startedAt)/1000|0}s`;
     setProcessing(true);
     try {
       const data=await api('/api/predict',{method:'POST',body:form});
       renderResult(data);
+      if ($('autoAlternate').checked) setSpeaker(turnSpeaker === 'A' ? 'B' : 'A');
       $('manualText').value='';
       setCaptureState('PHÂN TÍCH XONG','ready');
     } catch(e) {
@@ -218,7 +235,7 @@
       $('timer').textContent='00:00';
     }
   }
-  function renderResult(data) {
+  function renderResult(data, replace = false) {
     $('emptyResult').classList.add('hidden');
     $('resultContent').classList.remove('hidden');
     $('emotionIcon').textContent=faces[data.emotion] || '✨';
@@ -228,7 +245,9 @@
     $('confidenceRing').style.setProperty('--percent',data.confidence);
     $('historyCount').textContent=data.history_size;
     $('transcriptOutput').textContent=data.transcript;
-    $('transcriptSource').textContent=data.transcript_mode==='manual' ? 'MANUAL INPUT' : 'WHISPER ASR';
+    $('transcriptSource').textContent = {manual:'MANUAL INPUT', edited:'ĐÃ SỬA'}[data.transcript_mode] || 'WHISPER ASR';
+    $('editTranscriptBtn').classList.toggle('hidden', data.transcript_mode === 'manual');
+    $('editBox').classList.add('hidden');
     const ordered=[...data.probabilities].sort((a,b)=>b.percent-a.percent);
     $('probabilityList').replaceChildren(...ordered.map((p,i)=>{
       const row=document.createElement('div');row.className=`prob-line ${i===0?'top':''}`;
@@ -242,7 +261,12 @@
     $('asrLatency').textContent=`${data.latency_ms.asr} ms`;
     $('encoderLatency').textContent=`${data.latency_ms.encoders} ms`;
     $('modelLatency').textContent=`${data.latency_ms.digemo} ms`;
-    state.history.unshift({time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),...data});
+
+      if (replace && state.history.length) {
+      state.history[0] = {...state.history[0], ...data};   // giữ time, speaker, audio_seconds, frame_count
+    } else {
+      state.history.unshift({time:new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}),...data});
+    }
     $('turnCount').textContent=state.history.length;
     $('historyEmpty').classList.add('hidden');
     const hist=$('historyList');hist.replaceChildren(...state.history.map((item,i)=>{
@@ -250,12 +274,36 @@
       const seq=document.createElement('div');seq.className='hist-num';seq.textContent=String(state.history.length-i).padStart(2,'0');
       const content=document.createElement('div');content.className='hist-main';
       const title=document.createElement('strong');title.textContent=item.transcript;
-      const detail=document.createElement('small');detail.textContent=`${item.time} · ${item.audio_seconds}s audio · ${item.frame_count} frames`;
+      const detail=document.createElement('small');detail.textContent = `Speaker ${item.speaker} · ${item.time} · ${item.audio_seconds}s audio · ${item.frame_count} frames`;
       content.append(title,detail);
       const chip=document.createElement('div');chip.className='emotion-chip';chip.textContent=`${faces[item.emotion] || '•'} ${names[item.emotion] || item.emotion}`;
       const conf=document.createElement('div');conf.className='hist-confidence';conf.textContent=`${item.confidence.toFixed(1)}%`;
       row.append(seq,content,chip,conf);return row;
     }));
+  }
+    const closeEdit = () => {
+    $('editBox').classList.add('hidden');
+    $('editTranscriptBtn').classList.remove('hidden');
+  };
+  function openEdit() {
+    $('editText').value = $('transcriptOutput').textContent;
+    $('editBox').classList.remove('hidden');
+    $('editTranscriptBtn').classList.add('hidden');
+    $('editText').focus();
+  }
+  async function applyEdit() {
+    const text = $('editText').value.trim();
+    if (!text) { toast('Transcript không được để trống.'); return; }
+    if (state.active || state.processing || !state.sessionId) return;
+    $('applyEditBtn').disabled = true;
+    try {
+      const data = await api('/api/correct', {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({session_id: state.sessionId, transcript: text}),
+      });
+      renderResult(data, true);
+    } catch (e) { toast(e.message); }
+    finally { $('applyEditBtn').disabled = false; }
   }
   async function resetSession() {
     if (!state.sessionId || state.active || state.processing) return;
@@ -263,6 +311,7 @@
     try {
       await api('/api/reset',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({session_id:state.sessionId})});
       state.history=[];
+      setSpeaker('A');
       $('historyList').replaceChildren();
       $('historyEmpty').classList.remove('hidden');
       $('turnCount').textContent='0';
@@ -295,6 +344,14 @@
   $('cameraSelect').addEventListener('change',()=>{if(state.stream)connectDevices().catch(e=>toast(e.message));});
   $('micSelect').addEventListener('change',()=>{if(state.stream)connectDevices().catch(e=>toast(e.message));});
   $('manualMode').addEventListener('change',()=>{$('manualBox').classList.toggle('hidden',!$('manualMode').checked);});
+
+  document.querySelectorAll('.seg-btn').forEach(b =>
+    b.addEventListener('click', () => {
+      if (!state.active && !state.processing) setSpeaker(b.dataset.speaker);
+    }));
+  $('editTranscriptBtn').addEventListener('click', openEdit);
+  $('cancelEditBtn').addEventListener('click', closeEdit);
+  $('applyEditBtn').addEventListener('click', applyEdit);
   document.addEventListener('keydown',e=>{
     if(e.code!=='Space' || e.repeat || e.target.closest('input,textarea,button,select'))return;
     if(!state.stream||state.processing)return;
