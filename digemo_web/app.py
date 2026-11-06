@@ -5,7 +5,7 @@ Run from DiGemo root (PowerShell):
 Browser: http://127.0.0.1:8000
 """
 from __future__ import annotations
-
+from video_pipeline import register_video_routes
 import argparse
 import logging
 import secrets
@@ -122,8 +122,14 @@ class DiGemoEngine:
         )
         self.encoders = OnlineEncoders(enc_args, self.device)
         from faster_whisper import WhisperModel
-        LOG.info('Loading Whisper %s on CPU/int8...', config.whisper_model)
-        self.asr = WhisperModel(config.whisper_model, device='cpu', compute_type='int8')
+        from faster_whisper import WhisperModel
+        LOG.info('Loading Whisper %s (thử GPU trước)...', config.whisper_model)
+        try:
+            self.asr = WhisperModel(config.whisper_model, device='cuda', compute_type='float16')
+            list(self.asr.transcribe(np.zeros(16000, dtype=np.float32), language='en')[0])
+        except Exception as exc:
+            LOG.warning('Whisper GPU không dùng được (%s), chuyển sang CPU', exc)
+            self.asr = WhisperModel(config.whisper_model, device='cpu', compute_type='int8')
         self.sessions: dict[str, Session] = {}
         self.lock = threading.Lock()
         self.config = config
@@ -282,7 +288,9 @@ def create_app(engine=None) -> FastAPI:
         if app.state.engine is None:
             raise HTTPException(status_code=503, detail='AI models are still loading.')
         return app.state.engine
-
+    
+    register_video_routes(app, active_engine)
+    
     @app.get('/')
     def index():
         return FileResponse(str(HERE / 'static' / 'index.html'))
@@ -338,7 +346,7 @@ def main():
     parser.add_argument('--speaker-b-index', type=int, default=1)
     parser.add_argument('--roberta-checkpoint', default=None)
     parser.add_argument('--torch-device', choices=('auto', 'cuda', 'cpu'), default='auto')
-    parser.add_argument('--whisper-model', default='base.en')
+    parser.add_argument('--whisper-model', default='large-v3')
     parser.add_argument('--window', type=int, default=10)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8000)

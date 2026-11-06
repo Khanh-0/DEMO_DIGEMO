@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0a1020">
+  <title>DiGemo · Phân tích video</title>
+  <link rel="stylesheet" href="/static/styles.css">
+  <link rel="stylesheet" href="/static/video.css">
+</head>
+<body>
+  <div class="ambient orb-one" aria-hidden="true"></div>
+  <div class="ambient orb-two" aria-hidden="true"></div>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="5" width="15" height="14" rx="3"/><path d="m17 10 5-3v10l-5-3"/></symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24"><path d="M12 18V5a3 3 0 0 0-5.7-1.3A4 4 0 0 0 4 10a4 4 0 0 0 1 7 3 3 0 0 0 7 1Zm0 0V5a3 3 0 0 1 5.7-1.3A4 4 0 0 1 20 10a4 4 0 0 1-1 7 3 3 0 0 1-7 1Z"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="m8 5 11 7-11 7V5Z"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3 2 21h20L12 3Z M12 9v5 M12 18v.1"/></symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24"><path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 2 21 6v6c0 5.3-3.7 8.9-9 10-5.3-1.1-9-4.7-9-10V6l9-4Z"/><path d="m9 12 2 2 4-4"/></symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></symbol>
+  </svg>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">D<span>.</span></div><div class="brand-name">DiGemo<span>Studio</span><small>MULTIMODAL AI LAB</small></div></div>
+      <p class="side-caption">WORKSPACE</p>
+      <a class="side-link" href="/"><svg class="icon"><use href="#i-brain"/></svg><span>Emotion Studio</span></a>
+      <a class="side-link active" href="/video"><svg class="icon"><use href="#i-video"/></svg><span>Phân tích video</span><span class="active-dot"></span></a>
+      <div class="sidebar-bottom">
+        <div class="privacy-note"><svg class="icon"><use href="#i-shield"/></svg><span>Video được lưu tạm trên PC của bạn để xử lý, tự xóa sau 2 giờ hoặc khi bạn bấm Xóa video.</span></div>
+      </div>
+    </aside>
+    <main class="main">
+      <div class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Phân tích video</strong></div><div class="top-right"><span class="avatar">AI</span></div></div>
+      <section class="intro">
+        <div class="eyebrow"><svg class="icon"><use href="#i-sparkle"/></svg> VIDEO → UTTERANCE → EMOTION</div>
+        <h1>Đưa video vào, <span>nhận cảm xúc từng câu nói.</span></h1>
+        <p>Whisper tách câu, phân cụm giọng nói theo số người bạn chọn, rồi RoBERTa · Wav2Vec2 · DenseNet tạo đặc trưng cho DiGemo. Bạn có thể sửa bảng utterance hoặc nạp CSV giống lúc training.</p>
+      </section>
+
+      <section class="panel step-card" id="uploadCard">
+        <div class="panel-heading"><div><div class="section-kicker">BƯỚC 1</div><h2>Video và số người nói</h2></div><span class="tag" id="jobTag">CHƯA CHẠY</span></div>
+        <div class="upload-grid">
+          <label class="drop" for="videoFile"><svg class="icon"><use href="#i-upload"/></svg><strong id="videoName">Chọn video (mp4, avi, mov, mkv, webm)</strong><small>Tối đa 10 phút, 800 MB. Cần có cả hình và tiếng, tiếng Anh.</small></label>
+          <input type="file" id="videoFile" accept="video/*,.mkv" hidden>
+          <label class="drop small" for="csvFile"><svg class="icon"><use href="#i-upload"/></svg><strong id="csvName">CSV utterance (tùy chọn)</strong><small>Cột: Dialogue_ID, Speaker, Utterance, StartTime, EndTime, Emotion</small></label>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+        </div>
+        <div class="opt-row">
+          <div class="opt"><label for="numSpeakers">Số người nói</label>
+            <div class="chips" id="speakerChips"><button type="button" data-n="2" class="chip active">2</button><button type="button" data-n="3" class="chip">3</button><button type="button" data-n="4" class="chip">4</button><button type="button" data-n="5" class="chip">5</button></div>
+            <input type="number" id="numSpeakers" min="1" max="8" value="2">
+          </div>
+          <div class="opt"><label for="maxPer">Tối đa utterance / hội thoại</label><input type="number" id="maxPer" min="2" max="100" value="30"><small>MELD thường dưới 30 câu mỗi hội thoại.</small></div>
+          <label class="manual-switch opt"><input type="checkbox" id="faceCrop"><span class="toggle" aria-hidden="true"></span><span>Cắt khuôn mặt <small>(thử nghiệm, khác lúc training)</small></span></label>
+        </div>
+        <div class="capture-actions"><button id="analyzeBtn" class="btn btn-primary" disabled><svg class="icon"><use href="#i-sparkle"/></svg><span>Phân đoạn video</span></button><button id="clearBtn" class="btn btn-secondary" disabled><svg class="icon"><use href="#i-trash"/></svg><span>Xóa video</span></button></div>
+        <div class="progress hidden" id="progress"><div class="bar"><i id="progressBar"></i></div><span id="progressText"></span></div>
+        <p class="hint" id="autoHint">Không có CSV: Whisper tự tách câu và phân cụm giọng thành N người. Cách này gần đúng, hãy kiểm tra và sửa cột Speaker ở bước 2.</p>
+      </section>
+
+      <div class="dashboard-grid hidden" id="reviewGrid">
+        <section class="panel step-card">
+          <div class="panel-heading"><div><div class="section-kicker">XEM TRƯỚC</div><h2>Video</h2></div></div>
+          <video id="player" controls playsinline></video>
+        </section>
+        <section class="panel step-card">
+          <div class="panel-heading"><div><div class="section-kicker">ÁNH XẠ SPEAKER</div><h2>Speaker → slot của model</h2></div></div>
+          <p class="hint">Checkpoint có 9 slot (0–7 nhân vật MELD, 8 = Other). Mỗi người nên dùng một slot riêng; thử vài cách gán để so kết quả.</p>
+          <div id="slotList" class="slot-list"></div>
+        </section>
+      </div>
+
+      <section class="panel step-card hidden" id="tableCard">
+        <div class="panel-heading"><div><div class="section-kicker">BƯỚC 2</div><h2>Bảng utterance <span class="count" id="rowCount">0</span></h2></div>
+          <div class="head-actions"><button id="addRowBtn" class="btn btn-outline" type="button">Thêm dòng</button><button id="dlInputBtn" class="btn btn-outline" type="button"><svg class="icon"><use href="#i-download"/></svg> CSV đầu vào</button><button id="predictBtn" class="btn btn-primary" type="button"><svg class="icon"><use href="#i-brain"/></svg><span>Dự đoán cảm xúc</span></button></div></div>
+        <div class="summary hidden" id="summary"></div>
+        <div class="table-wrap"><div class="utt-table" id="uttTable"></div></div>
+        <datalist id="speakerList"></datalist>
+        <div class="head-actions end"><button id="dlResultBtn" class="btn btn-outline hidden" type="button"><svg class="icon"><use href="#i-download"/></svg> CSV kết quả</button></div>
+      </section>
+      <footer><span>DiGemo Emotion Studio · Research prototype</span><span>Không phải đánh giá tâm lý · Tiếng Anh / MELD</span></footer>
+    </main>
+  </div>
+  <div class="toast hidden" id="toast" role="alert"><svg class="icon"><use href="#i-alert"/></svg><span id="toastText"></span><button id="toastClose" aria-label="Đóng">×</button></div>
+  <script defer src="/static/video.js"></script>
+</body>
+</html>

@@ -1,0 +1,418 @@
+
+# import re
+# import csv
+# import wave
+# import shutil
+# import subprocess
+# import tempfile
+# from pathlib import Path
+# from collections import defaultdict
+
+# # ===== CONFIG =====
+# INPUT_DIR = Path(
+#     r"E:\Do_an\Dataprocessing\MELD.Raw\test\output_repeated_splits_test"
+# )
+
+# OUTPUT_DIR = INPUT_DIR / "merged_dialogues"
+# SAMPLE_RATE = 16000
+
+# # ==================
+
+# def run_ffmpeg(args):
+#     result = subprocess.run(
+#         args,
+#         stdout=subprocess.PIPE,
+#         stderr=subprocess.PIPE,
+#         text=True,
+#         encoding="utf-8",
+#         errors="replace"
+#     )
+#     if result.returncode != 0:
+#         raise RuntimeError(result.stderr[-2000:])
+
+
+# def get_wav_duration(path):
+#     with wave.open(str(path), "rb") as wf:
+#         return wf.getnframes() / wf.getframerate()
+
+
+# def main():
+#     ffmpeg = shutil.which("ffmpeg")
+#     if not ffmpeg:
+#         raise RuntimeError("Không tìm thấy ffmpeg trong PATH.")
+
+#     if not INPUT_DIR.exists():
+#         raise FileNotFoundError(f"Không tìm thấy: {INPUT_DIR}")
+
+#     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+#     # Nhận diện dia21_utt0.mp4
+#     pattern = re.compile(
+#         r"dia(\d+)_utt(\d+)\.mp4$",
+#         re.IGNORECASE
+#     )
+
+#     dialogues = defaultdict(list)
+
+#     for video in INPUT_DIR.glob("*.mp4"):
+#         match = pattern.match(video.name)
+
+#         if match:
+#             dialogue_id = int(match.group(1))
+#             utterance_id = int(match.group(2))
+#             dialogues[dialogue_id].append(
+#                 (utterance_id, video)
+#             )
+
+#     if not dialogues:
+#         print("Không tìm thấy file diaX_uttY.mp4")
+#         return
+
+#     manifest_path = OUTPUT_DIR / "utterance_timestamps.csv"
+
+#     with open(
+#         manifest_path, "w", newline="", encoding="utf-8-sig"
+#     ) as csvfile:
+
+#         writer = csv.writer(csvfile)
+#         writer.writerow([
+#             "dialogue_id",
+#             "utterance_id",
+#             "video",
+#             "start",
+#             "end",
+#             "duration"
+#         ])
+
+#         for dialogue_id, utterances in sorted(dialogues.items()):
+#             utterances.sort(key=lambda x: x[0])
+
+#             print(
+#                 f"\nDialogue {dialogue_id}: "
+#                 f"{len(utterances)} utterances"
+#             )
+
+#             output_wav = (
+#                 OUTPUT_DIR / f"dia{dialogue_id}.wav"
+#             )
+
+#             current_time = 0.0
+
+#             with tempfile.TemporaryDirectory() as temp_dir:
+#                 temp_dir = Path(temp_dir)
+#                 wav_files = []
+
+#                 for utterance_id, video in utterances:
+#                     temp_wav = (
+#                         temp_dir / f"utt_{utterance_id:04d}.wav"
+#                     )
+
+#                     try:
+#                         run_ffmpeg([
+#                             ffmpeg,
+#                             "-y",
+#                             "-v", "error",
+#                             "-i", str(video),
+#                             "-map", "0:a:0",
+#                             "-vn",
+#                             "-ac", "1",
+#                             "-ar", str(SAMPLE_RATE),
+#                             "-c:a", "pcm_s16le",
+#                             str(temp_wav)
+#                         ])
+
+#                         duration = get_wav_duration(temp_wav)
+
+#                     except Exception as e:
+#                         print(f"  [SKIP] {video.name}: {e}")
+#                         continue
+
+#                     start = current_time
+#                     end = start + duration
+
+#                     writer.writerow([
+#                         dialogue_id,
+#                         utterance_id,
+#                         video.name,
+#                         round(start, 4),
+#                         round(end, 4),
+#                         round(duration, 4)
+#                     ])
+
+#                     current_time = end
+#                     wav_files.append(temp_wav)
+
+#                     print(
+#                         f"  {video.name}: "
+#                         f"{start:.2f}s -> {end:.2f}s"
+#                     )
+
+#                 if not wav_files:
+#                     print("  [SKIP] Dialogue không có audio")
+#                     continue
+
+#                 # Tạo concat list
+#                 concat_file = temp_dir / "concat.txt"
+
+#                 with open(
+#                     concat_file, "w", encoding="utf-8"
+#                 ) as f:
+#                     for wav_file in wav_files:
+#                         path = wav_file.resolve().as_posix()
+#                         f.write(f"file '{path}'\n")
+
+#                 run_ffmpeg([
+#                     ffmpeg,
+#                     "-y",
+#                     "-v", "error",
+#                     "-f", "concat",
+#                     "-safe", "0",
+#                     "-i", str(concat_file),
+#                     "-c:a", "pcm_s16le",
+#                     str(output_wav)
+#                 ])
+
+#             print(
+#                 f"  [OK] {output_wav.name} "
+#                 f"({current_time:.2f}s)"
+#             )
+
+#     print("\n========== DONE ==========")
+#     print(f"Output: {OUTPUT_DIR}")
+#     print(f"Manifest: {manifest_path}")
+
+
+# if __name__ == "__main__":
+#     main()
+
+import re
+import csv
+import shutil
+import subprocess
+import tempfile
+from pathlib import Path
+from collections import defaultdict
+
+# ================= CONFIG =================
+
+INPUT_DIR = Path(
+    r"E:\Do_an\Dataprocessing\MELD.Raw\test\output_repeated_splits_test"
+)
+
+OUTPUT_DIR = INPUT_DIR / "merged_videos"
+
+# ==========================================
+
+
+def run_ffmpeg(args):
+    result = subprocess.run(
+        args,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        encoding="utf-8",
+        errors="replace"
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr[-3000:])
+
+
+def get_duration(path):
+    result = subprocess.run(
+        [
+            "ffprobe", "-v", "error",
+            "-show_entries", "format=duration",
+            "-of", "default=noprint_wrappers=1:nokey=1",
+            str(path)
+        ],
+        capture_output=True,
+        text=True
+    )
+
+    if result.returncode != 0:
+        raise RuntimeError(result.stderr)
+
+    return float(result.stdout.strip())
+
+
+def get_dialogues():
+    pattern = re.compile(
+        r"dia(\d+)_utt(\d+)\.mp4$",
+        re.IGNORECASE
+    )
+
+    dialogues = defaultdict(list)
+
+    for video in INPUT_DIR.glob("*.mp4"):
+        match = pattern.match(video.name)
+
+        if match:
+            dia_id = int(match.group(1))
+            utt_id = int(match.group(2))
+            dialogues[dia_id].append((utt_id, video))
+
+    for dia_id in dialogues:
+        dialogues[dia_id].sort(key=lambda x: x[0])
+
+    return dialogues
+
+
+def select_dialogues(dialogues):
+    print("\n========== DIALOGUES AVAILABLE ==========")
+
+    ids = sorted(dialogues.keys())
+
+    print(f"Tổng số dialogue: {len(ids)}")
+    print("Các dialogue:", ", ".join(map(str, ids)))
+
+    print("\nNhập lựa chọn:")
+    print("  21       -> Ghép dialogue 21")
+    print("  21,22,25 -> Ghép nhiều dialogue")
+    print("  all      -> Ghép toàn bộ")
+
+    choice = input("\nChọn dialogue: ").strip().lower()
+
+    if choice == "all":
+        return ids
+
+    try:
+        selected = sorted(set(
+            int(x.strip()) for x in choice.split(",")
+        ))
+    except ValueError:
+        raise ValueError("Lựa chọn không hợp lệ.")
+
+    missing = [x for x in selected if x not in dialogues]
+
+    if missing:
+        raise ValueError(f"Không tìm thấy dialogue: {missing}")
+
+    return selected
+
+
+def merge_dialogue(dia_id, utterances):
+    OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+
+    output_video = OUTPUT_DIR / f"dia{dia_id}.mp4"
+    manifest = OUTPUT_DIR / f"dia{dia_id}_timestamps.csv"
+
+    print(f"\n========== MERGING DIA{dia_id} ==========")
+
+    with tempfile.TemporaryDirectory() as temp:
+        temp = Path(temp)
+
+        normalized = []
+        current_time = 0.0
+        timestamp_rows = []
+
+        for index, (utt_id, video) in enumerate(utterances):
+            temp_video = temp / f"utt_{index:04d}.mp4"
+
+            print(f"[{index + 1}/{len(utterances)}] {video.name}")
+
+            # Chuẩn hóa từng video để tránh lỗi khác codec,
+            # độ phân giải hoặc FPS khi nối.
+            run_ffmpeg([
+                "ffmpeg", "-y", "-v", "error",
+                "-i", str(video),
+                "-map", "0:v:0",
+                "-map", "0:a:0?",
+                "-vf",
+                "scale=1280:720:force_original_aspect_ratio=decrease,"
+                "pad=1280:720:(ow-iw)/2:(oh-ih)/2,"
+                "setsar=1,fps=24,format=yuv420p",
+                "-c:v", "libx264",
+                "-preset", "fast",
+                "-crf", "20",
+                "-c:a", "aac",
+                "-ac", "2",
+                "-ar", "44100",
+                "-b:a", "192k",
+                "-movflags", "+faststart",
+                str(temp_video)
+            ])
+
+            duration = get_duration(temp_video)
+
+            start = current_time
+            end = start + duration
+            current_time = end
+
+            normalized.append(temp_video)
+
+            timestamp_rows.append([
+                dia_id,
+                utt_id,
+                video.name,
+                round(start, 4),
+                round(end, 4),
+                round(duration, 4)
+            ])
+
+        # Tạo danh sách video để concat
+        concat_file = temp / "concat.txt"
+
+        with open(concat_file, "w", encoding="utf-8") as f:
+            for path in normalized:
+                safe_path = path.resolve().as_posix()
+                f.write(f"file '{safe_path}'\n")
+
+        # Ghép thành video dialogue
+        run_ffmpeg([
+            "ffmpeg", "-y", "-v", "error",
+            "-f", "concat",
+            "-safe", "0",
+            "-i", str(concat_file),
+            "-c", "copy",
+            "-movflags", "+faststart",
+            str(output_video)
+        ])
+
+    # Xuất timestamp
+    with open(
+        manifest, "w", newline="", encoding="utf-8-sig"
+    ) as f:
+        writer = csv.writer(f)
+        writer.writerow([
+            "dialogue_id",
+            "utterance_id",
+            "original_video",
+            "start",
+            "end",
+            "duration"
+        ])
+        writer.writerows(timestamp_rows)
+
+    print(f"\n[OK] Video: {output_video}")
+    print(f"[OK] Timestamp: {manifest}")
+    print(f"[OK] Duration: {current_time:.2f}s")
+
+
+def main():
+    if not shutil.which("ffmpeg"):
+        raise RuntimeError("Không tìm thấy ffmpeg trong PATH.")
+
+    if not shutil.which("ffprobe"):
+        raise RuntimeError("Không tìm thấy ffprobe trong PATH.")
+
+    if not INPUT_DIR.exists():
+        raise FileNotFoundError(INPUT_DIR)
+
+    dialogues = get_dialogues()
+
+    if not dialogues:
+        print("Không tìm thấy file diaX_uttY.mp4")
+        return
+
+    selected = select_dialogues(dialogues)
+
+    for dia_id in selected:
+        merge_dialogue(dia_id, dialogues[dia_id])
+
+    print("\n========== COMPLETED ==========")
+    print(f"Output directory: {OUTPUT_DIR}")
+
+
+if __name__ == "__main__":
+    main()

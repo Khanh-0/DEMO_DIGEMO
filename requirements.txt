@@ -1,4 +1,42 @@
-# Python 3.9 / 3.10. Cài torch + torchvision TRƯỚC, riêng (xem lệnh bên dưới).
+# # Python 3.9 / 3.10. Cài torch + torchvision TRƯỚC, riêng (xem lệnh bên dưới).
+
+# # --- Web server ---
+# fastapi>=0.110,<1
+# uvicorn>=0.27,<1
+# python-multipart>=0.0.9
+
+# # --- Speech-to-text ---
+# faster-whisper>=1.0,<2
+# pyannote.audio
+# # --- Model / feature extraction ---
+# numpy==1.26.4
+# scipy==1.11.4
+# pandas==1.5.3
+# scikit-learn==1.6.1
+# joblib>=1.2,<2
+# transformers==4.41.2
+# Pillow>=9,<12
+# opencv-python==4.10.0.84
+# torch==2.8.0
+# torchaudio==2.8.0
+# torchvision==0.23.0
+# # --- Chỉ cần cho live_erc.py bản terminal ---
+# sounddevice
+
+# # --- Chỉ cần cho predict.py / train (web demo không cần) ---
+# tensorboardX==2.6.2.2
+# matplotlib==3.7.1
+# seaborn==0.12.2
+# thop
+
+# Python 3.10+ (pyannote.audio 4.x yêu cầu >=3.10).
+# Torch bản CUDA 12.6: dòng dưới giúp pip lấy bản GPU thay vì bản CPU trên PyPI.
+--extra-index-url https://download.pytorch.org/whl/cu126
+
+# --- Torch ---
+torch==2.8.0
+torchaudio==2.8.0
+torchvision==0.23.0
 
 # --- Web server ---
 fastapi>=0.110,<1
@@ -7,6 +45,9 @@ python-multipart>=0.0.9
 
 # --- Speech-to-text ---
 faster-whisper>=1.0,<2
+
+# --- Speaker diarization (cần HF token + Accept điều khoản trên trang model) ---
+pyannote.audio>=4.0
 
 # --- Model / feature extraction ---
 numpy==1.26.4
