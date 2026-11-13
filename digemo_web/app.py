@@ -303,14 +303,14 @@ def create_app(engine=None) -> FastAPI:
     def new_session():
         return active_engine().new_session()
 
-    @app.post('/api/reset')
-    
     @app.post('/api/correct')
     def correct(req: CorrectRequest):
         try:
             return active_engine().correct(req.session_id, req.transcript)
         except (ValueError, RuntimeError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc   
+            raise HTTPException(status_code=400, detail=str(exc)) from exc
+
+    @app.post('/api/reset')
     def reset(req: SessionRequest):
         try:
             return active_engine().reset(req.session_id)
@@ -347,6 +347,7 @@ def main():
     parser.add_argument('--roberta-checkpoint', default=None)
     parser.add_argument('--torch-device', choices=('auto', 'cuda', 'cpu'), default='auto')
     parser.add_argument('--whisper-model', default='large-v3')
+    parser.add_argument('--meld-csv', default='MELD_pro/test_sent_emo.csv', help='Đường dẫn test_sent_emo.csv (chế độ MELD ở trang video)')
     parser.add_argument('--window', type=int, default=10)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8000)
@@ -357,6 +358,9 @@ def main():
         parser.error('--speaker-a-index và --speaker-b-index phải trong khoảng 0..8')
     if args.speaker_a_index == args.speaker_b_index:
         parser.error('Speaker A và B phải dùng hai slot khác nhau')
+    if args.meld_csv:
+        import os
+        os.environ['DIGEMO_MELD_CSV'] = str(in_project(args.meld_csv))
     args.checkpoint = in_project(args.checkpoint)
     args.features_dir = in_project(args.features_dir)
     candidates = [args.features_dir / 'roberta_meld_ft.pt',

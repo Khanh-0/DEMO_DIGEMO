@@ -119,6 +119,104 @@ def parse_utterance_csv(data: bytes, labels: List[str]) -> List[dict]:
     return out
 
 
+# ----------------------------------------------------------------------------------------
+# MELD mode: read the original test_sent_emo.csv by Dialogue_ID (server side)
+# ----------------------------------------------------------------------------------------
+MELD_CSV_NAME = 'test_sent_emo.csv'
+# GIẢ ĐỊNH: thứ tự slot theo nhân vật chính. Nếu khi train bạn dùng thứ tự khác, sửa dict này
+# (hoặc đổi slot ngay trong bảng "Speaker -> slot" trước khi bấm dự đoán). Người lạ -> slot 8 (Other).
+MELD_SPEAKER_SLOTS = {'chandler': 0, 'joey': 1, 'monica': 2, 'phoebe': 3, 'rachel': 4, 'ross': 5}
+_MELD_CACHE: Dict[str, object] = {}
+
+
+def find_meld_csv() -> Path:
+    import os
+    env = os.environ.get('DIGEMO_MELD_CSV')
+    cands = [Path(env)] if env else []
+    root = HERE.parent
+    for base in (root, root / 'MELD_pro', root / 'MELD_pro' / 'features', root / 'data', HERE, HERE / 'data'):
+        cands.append(base / MELD_CSV_NAME)
+    for p in cands:
+        if p.is_file():
+            return p
+    try:
+        for p in (root / 'MELD_pro').rglob(MELD_CSV_NAME):
+            return p
+    except OSError:
+        pass
+    raise ValueError(f'Không tìm thấy {MELD_CSV_NAME}. Đặt file cạnh thư mục gốc DiGemo hoặc chạy app.py với --meld-csv <đường dẫn>.')
+
+
+def _load_meld_table() -> Dict[int, List[dict]]:
+    path = find_meld_csv()
+    key = f'{path}:{path.stat().st_mtime}'
+    if _MELD_CACHE.get('key') == key:
+        return _MELD_CACHE['data']  # type: ignore
+    raw = path.read_bytes()
+    try:
+        text = raw.decode('utf-8-sig')
+    except UnicodeDecodeError:
+        text = raw.decode('latin-1')
+    reader = csv.DictReader(io.StringIO(text))
+    table: Dict[int, List[dict]] = {}
+    for r in reader:
+        r = {_norm_header(k): (v or '').strip() for k, v in r.items() if k}
+        try:
+            did = int(r['dialogue_id'])
+            table.setdefault(did, []).append({
+                'utt_id': int(r.get('utterance_id') or 0),
+                'speaker': r.get('speaker') or 'Other',
+                'text': r.get('utterance', ''),
+                'emotion': r.get('emotion', '').lower(),
+                'start': parse_time(r['starttime']), 'end': parse_time(r['endtime'])})
+        except (KeyError, ValueError):
+            continue
+    if not table:
+        raise ValueError(f'{path.name} không đọc được dòng nào (cần cột Dialogue_ID, Speaker, Utterance, Emotion, StartTime, EndTime).')
+    for lst in table.values():
+        lst.sort(key=lambda x: (x['start'], x['utt_id']))   # thứ tự người nói theo thời gian
+    _MELD_CACHE.update(key=key, data=table)
+    return table
+
+
+def meld_dialogue_info() -> dict:
+    t = _load_meld_table()
+    return {'file': str(find_meld_csv()), 'dialogues': len(t), 'min_id': min(t), 'max_id': max(t)}
+
+
+def meld_rows(dialogue_id: int, time_mode: str, labels: Optional[List[str]] = None) -> List[dict]:
+    """Rows of one MELD dialogue in the format the pipeline expects.
+
+    time_mode 'offset': giữ khoảng nghỉ gốc, trừ mốc bắt đầu câu đầu tiên.
+    time_mode 'concat': các câu nối liền nhau (video gộp bỏ khoảng nghỉ).
+    """
+    table = _load_meld_table()
+    if dialogue_id not in table:
+        raise ValueError(f'Không có Dialogue_ID {dialogue_id} trong CSV (có {min(table)}–{max(table)}).')
+    src = table[dialogue_id]
+    t0, cursor, out = src[0]['start'], 0.0, []
+    for r in src:
+        dur = max(r['end'] - r['start'], 0.1)
+        if time_mode == 'concat':
+            s, e = cursor, cursor + dur
+            cursor = e
+        else:
+            s, e = max(0.0, r['start'] - t0), max(0.0, r['start'] - t0) + dur
+        truth = r['emotion'] if (labels is None or r['emotion'] in labels) else None
+        out.append({'start': s, 'end': e, 'speaker': r['speaker'], 'text': r['text'],
+                    'dialogue_id': str(dialogue_id), 'truth': truth})
+    return out
+
+
+def meld_slots(speakers: List[str], n_slots: int) -> Dict[str, int]:
+    req = {s: MELD_SPEAKER_SLOTS[s.lower()] for s in speakers if s.lower() in MELD_SPEAKER_SLOTS}
+    others = [s for s in speakers if s not in req]
+    out = resolve_slots([s for s in speakers if s in req], req, n_slots)
+    for s in others:
+        out[s] = n_slots - 1   # Other
+    return out
+
+
 def build_utterances(words, max_s=MAX_UTT_S, gap_s=0.8, max_words=30) -> List[dict]:
     """words: [(start, end, text)] -> sentence-like utterances, closer to MELD units."""
     utts, cur = [], []
@@ -443,7 +541,8 @@ class VideoService:
         return job
 
     # -- step 1: video (+ optional CSV) -> editable utterance table ---------------------
-    def analyze(self, job: Job, token: str, csv_bytes: Optional[bytes], n_speakers: int):
+    def analyze(self, job: Job, token: str, csv_bytes: Optional[bytes], n_speakers: int,
+                meld_dialogue: Optional[int] = None, meld_time_mode: str = 'offset'):
         ad = self.get_adapter()
         rec = self.videos[token]
         job.set(0.02, 'Kiểm tra video…')
@@ -454,7 +553,19 @@ class VideoService:
         rec['wav'] = rec['dir'] / 'audio.npy'
         rec['duration'] = len(wav) / SAMPLE_RATE
 
-        if csv_bytes:
+        warning = None
+        if meld_dialogue is not None:
+            job.set(0.2, f'Đọc Dialogue_ID {meld_dialogue} từ {MELD_CSV_NAME}…')
+            rows = meld_rows(meld_dialogue, meld_time_mode, ad.labels)
+            dur = rec['duration']
+            if rows[0]['start'] >= dur or any(r['start'] >= dur for r in rows):
+                raise ValueError(f'Video dài {dur:.1f}s nhưng dialogue cần tới {rows[-1]["end"]:.1f}s; '
+                                 'thử đổi "cách tính thời gian" hoặc kiểm tra bạn đã chọn đúng video của dialogue này.')
+            if rows[-1]['end'] > dur + 0.5:
+                warning = (f'Câu cuối kết thúc ở {rows[-1]["end"]:.1f}s, vượt độ dài video ({dur:.1f}s). '
+                           'Có thể sai cách tính thời gian, hãy kiểm tra bằng nút phát.')
+            source = 'meld'
+        elif csv_bytes:
             rows = parse_utterance_csv(csv_bytes, ad.labels)
             if len(rows) > MAX_UTTERANCES:
                 raise ValueError(f'CSV có hơn {MAX_UTTERANCES} dòng.')
@@ -513,9 +624,11 @@ class VideoService:
                 source = 'auto'
 
         speakers = list(dict.fromkeys(r['speaker'] for r in rows))
+        slots = meld_slots(speakers, ad.ns) if source == 'meld' else resolve_slots(speakers, {}, ad.ns)
         return {'token': token, 'duration': round(rec['duration'], 2), 'video': info, 'source': source,
+                'meld_dialogue': meld_dialogue, 'warning': warning,
                 'rows': [{**r, 'start': round(r['start'], 2), 'end': round(r['end'], 2)} for r in rows],
-                'speakers': speakers, 'slots': resolve_slots(speakers, {}, ad.ns), 'n_slots': ad.ns}
+                'speakers': speakers, 'slots': slots, 'n_slots': ad.ns}
 
     # -- step 2: edited table -> encoders -> DiGemo ------------------------------------
     def predict(self, job: Job, token: str, raw_rows: List[dict], requested_slots: Dict[str, int],
@@ -637,8 +750,16 @@ def register_video_routes(app, active_engine, adapter_factory=EngineAdapter):
 
     @app.post('/api/video/analyze')
     async def video_analyze(video: UploadFile = File(...), csv_file: Optional[UploadFile] = File(None),
-                            num_speakers: int = Form(2)):
+                            num_speakers: int = Form(2), meld_dialogue: Optional[int] = Form(None),
+                            meld_time_mode: str = Form('offset')):
         adapter()  # 503 if models are still loading
+        if meld_dialogue is not None:
+            if meld_time_mode not in ('offset', 'concat'):
+                raise HTTPException(status_code=400, detail='Cách tính thời gian không hợp lệ.')
+            try:
+                meld_rows(meld_dialogue, meld_time_mode)   # fail fast, before uploading the video
+            except ValueError as exc:
+                raise HTTPException(status_code=400, detail=str(exc)) from exc
         if not 1 <= num_speakers <= 8:
             raise HTTPException(status_code=400, detail='Số người nói phải từ 1 đến 8.')
         suffix = Path(video.filename or '').suffix.lower()
@@ -664,8 +785,25 @@ def register_video_routes(app, active_engine, adapter_factory=EngineAdapter):
         except HTTPException:
             svc.discard(token)
             raise
-        job = svc.start(svc.analyze, token, csv_bytes, num_speakers)
+        job = svc.start(svc.analyze, token, csv_bytes, num_speakers, meld_dialogue, meld_time_mode)
         return {'job_id': job.id, 'token': token}
+
+    @app.get('/api/video/meld/info')
+    def meld_info():
+        try:
+            return meld_dialogue_info()
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    @app.get('/api/video/meld/{dialogue_id}')
+    def meld_preview(dialogue_id: int, time_mode: str = 'offset'):
+        try:
+            rows = meld_rows(dialogue_id, 'concat' if time_mode == 'concat' else 'offset')
+        except ValueError as exc:
+            raise HTTPException(status_code=404, detail=str(exc)) from exc
+        speakers = list(dict.fromkeys(r['speaker'] for r in rows))
+        return {'dialogue_id': dialogue_id, 'count': len(rows), 'speakers': speakers,
+                'duration': round(rows[-1]['end'], 1), 'rows': rows}
 
     @app.post('/api/video/predict')
     def video_predict(req: PredictIn):

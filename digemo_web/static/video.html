@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#0a1020">
   <title>DiGemo · Phân tích video</title>
   <link rel="stylesheet" href="/static/styles.css">
-  <link rel="stylesheet" href="/static/video.css">
+  <link rel="stylesheet" href="/static/video.css?v=meld2">
 </head>
 <body>
   <div class="ambient orb-one" aria-hidden="true"></div>
@@ -45,16 +45,31 @@
         <div class="upload-grid">
           <label class="drop" for="videoFile"><svg class="icon"><use href="#i-upload"/></svg><strong id="videoName">Chọn video (mp4, avi, mov, mkv, webm)</strong><small>Tối đa 10 phút, 800 MB. Cần có cả hình và tiếng, tiếng Anh.</small></label>
           <input type="file" id="videoFile" accept="video/*,.mkv" hidden>
-          <label class="drop small" for="csvFile"><svg class="icon"><use href="#i-upload"/></svg><strong id="csvName">CSV utterance (tùy chọn)</strong><small>Cột: Dialogue_ID, Speaker, Utterance, StartTime, EndTime, Emotion</small></label>
+          <label class="drop small" id="csvDrop" for="csvFile"><svg class="icon"><use href="#i-upload"/></svg><strong id="csvName">CSV utterance (tùy chọn)</strong><small>Cột: Dialogue_ID, Speaker, Utterance, StartTime, EndTime, Emotion</small></label>
           <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
         </div>
         <div class="opt-row">
-          <div class="opt"><label for="numSpeakers">Số người nói</label>
+          <div class="opt" id="speakerOpt"><label for="numSpeakers">Số người nói</label>
             <div class="chips" id="speakerChips"><button type="button" data-n="2" class="chip active">2</button><button type="button" data-n="3" class="chip">3</button><button type="button" data-n="4" class="chip">4</button><button type="button" data-n="5" class="chip">5</button></div>
             <input type="number" id="numSpeakers" min="1" max="8" value="2">
           </div>
           <div class="opt"><label for="maxPer">Tối đa utterance / hội thoại</label><input type="number" id="maxPer" min="2" max="100" value="30"><small>MELD thường dưới 30 câu mỗi hội thoại.</small></div>
           <label class="manual-switch opt"><input type="checkbox" id="faceCrop"><span class="toggle" aria-hidden="true"></span><span>Cắt khuôn mặt <small>(thử nghiệm, khác lúc training)</small></span></label>
+          <label class="manual-switch opt meld-switch"><input type="checkbox" id="meldMode"><span class="toggle" aria-hidden="true"></span><span>Dùng dữ liệu MELD <small>(đọc test_sent_emo.csv)</small></span></label>
+        </div>
+        <div class="meld-box hidden" id="meldBox">
+          <div class="meld-fields">
+            <div class="opt"><label for="meldId">Dialogue_ID cần demo</label><input type="number" id="meldId" min="0" step="1" placeholder="vd. 12"></div>
+            <div class="opt"><label for="meldTime">Cách tính thời gian trong video</label>
+              <select id="meldTime">
+                <option value="offset">Giữ khoảng nghỉ gốc (trừ mốc câu đầu)</option>
+                <option value="concat">Nối liền các câu (video gộp, bỏ khoảng nghỉ)</option>
+              </select>
+            </div>
+            <button type="button" id="meldLoadBtn" class="btn btn-outline">Xem trước dialogue</button>
+          </div>
+          <p class="hint" id="meldInfo">Nhập Dialogue_ID rồi chọn đúng video đã gộp của dialogue đó. Text, người nói, thời gian và nhãn đúng lấy từ CSV, không chạy Whisper.</p>
+          <div class="meld-preview hidden" id="meldPreview"></div>
         </div>
         <div class="capture-actions"><button id="analyzeBtn" class="btn btn-primary" disabled><svg class="icon"><use href="#i-sparkle"/></svg><span>Phân đoạn video</span></button><button id="clearBtn" class="btn btn-secondary" disabled><svg class="icon"><use href="#i-trash"/></svg><span>Xóa video</span></button></div>
         <div class="progress hidden" id="progress"><div class="bar"><i id="progressBar"></i></div><span id="progressText"></span></div>
@@ -81,10 +96,26 @@
         <datalist id="speakerList"></datalist>
         <div class="head-actions end"><button id="dlResultBtn" class="btn btn-outline hidden" type="button"><svg class="icon"><use href="#i-download"/></svg> CSV kết quả</button></div>
       </section>
+      <section class="panel step-card hidden" id="reportCard">
+        <div class="panel-heading"><div><div class="section-kicker">BÁO CÁO MELD</div><h2>Đúng / sai so với nhãn CSV <span class="count" id="reportDia">—</span></h2></div><span class="tag ready" id="reportTag">—</span></div>
+        <div class="report-top">
+          <div class="donut-wrap"><svg id="donut" viewBox="0 0 120 120" width="150" height="150" role="img" aria-label="Độ chính xác"></svg><div class="donut-center"><strong id="donutPct">—</strong><small>ACCURACY</small></div></div>
+          <div class="report-stats" id="reportStats"></div>
+        </div>
+        <div class="chart-head"><h3>Dòng thời gian từng câu</h3><span>XANH = ĐÚNG · ĐỎ = SAI</span></div>
+        <div class="timeline" id="timeline"></div>
+        <div class="report-cols">
+          <div><div class="chart-head"><h3>Đúng / sai theo nhãn thật</h3><span>PER EMOTION</span></div><div id="emoBars" class="emo-bars"></div></div>
+          <div><div class="chart-head"><h3>Ma trận nhầm lẫn</h3><span>THẬT × DỰ ĐOÁN</span></div><div id="confMatrix" class="conf-wrap"></div></div>
+        </div>
+        <div class="chart-head"><h3>Các dialogue đã chạy</h3><span id="runTotal"></span></div>
+        <div class="run-list" id="runList"></div>
+        <div class="head-actions end"><button id="clearRunsBtn" class="btn btn-outline" type="button">Xóa lịch sử chạy</button></div>
+      </section>
       <footer><span>DiGemo Emotion Studio · Research prototype</span><span>Không phải đánh giá tâm lý · Tiếng Anh / MELD</span></footer>
     </main>
   </div>
   <div class="toast hidden" id="toast" role="alert"><svg class="icon"><use href="#i-alert"/></svg><span id="toastText"></span><button id="toastClose" aria-label="Đóng">×</button></div>
-  <script defer src="/static/video.js"></script>
+  <script defer src="/static/video.js?v=meld2"></script>
 </body>
 </html>
