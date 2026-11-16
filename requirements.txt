@@ -49,6 +49,9 @@ faster-whisper>=1.0,<2
 # --- Speaker diarization (cần HF token + Accept điều khoản trên trang model) ---
 pyannote.audio>=4.0
 
+# --- Tách giọng nói chồng (tùy chọn, chỉ khi DIGEMO_OVERLAP_ASR=1) ---
+speechbrain>=1.0
+
 # --- Model / feature extraction ---
 numpy==1.26.4
 scipy==1.11.4
@@ -58,7 +61,7 @@ joblib>=1.2,<2
 transformers==4.41.2
 Pillow>=9,<12
 opencv-python==4.10.0.84
-
+speechbrain
 # --- Chỉ cần cho live_erc.py bản terminal ---
 sounddevice
 

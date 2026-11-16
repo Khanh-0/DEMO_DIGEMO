@@ -2,7 +2,7 @@
 
 Run from DiGemo root (PowerShell):
   python ./digemo_web/app.py --checkpoint checkpoints/best_model_MELD_9161.pth --features-dir MELD_pro/features
-Browser: http://127.0.0.1:8000
+Browser: http://127.0.0.1:8000  (tự chuyển tới /video)
 """
 from __future__ import annotations
 from video_pipeline import register_video_routes
@@ -26,7 +26,7 @@ if str(ROOT) not in sys.path:
 import numpy as np
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import FileResponse
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -273,12 +273,6 @@ class DiGemoEngine:
                                'digemo': round(digemo_time * 1000)},
             }
 
-class SessionRequest(BaseModel):
-    session_id: str
-class CorrectRequest(BaseModel):
-    session_id: str
-    transcript: str
-
 def create_app(engine=None) -> FastAPI:
     app = FastAPI(title='DiGemo Emotion Studio', version='1.0.0', docs_url=None, redoc_url=None)
     app.state.engine = engine
@@ -293,46 +287,11 @@ def create_app(engine=None) -> FastAPI:
     
     @app.get('/')
     def index():
-        return FileResponse(str(HERE / 'static' / 'index.html'))
+        return RedirectResponse('/video')
 
     @app.get('/api/status')
     def status():
         return active_engine().status()
-
-    @app.post('/api/session')
-    def new_session():
-        return active_engine().new_session()
-
-    @app.post('/api/correct')
-    def correct(req: CorrectRequest):
-        try:
-            return active_engine().correct(req.session_id, req.transcript)
-        except (ValueError, RuntimeError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    @app.post('/api/reset')
-    def reset(req: SessionRequest):
-        try:
-            return active_engine().reset(req.session_id)
-        except ValueError as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-
-    @app.post('/api/predict')
-    async def predict(session_id: str = Form(...), transcript: str = Form(''),
-                    speaker: str = Form('A'),
-                    audio: UploadFile = File(...), frames: list[UploadFile] = File(...)):
-        if len(frames) > 32:
-            raise HTTPException(status_code=400, detail='Tối đa 32 frame webcam.')
-        content = await audio.read(MAX_AUDIO_BYTES + 1)
-        pictures = [await f.read(MAX_FRAME_BYTES + 1) for f in frames]
-        try:
-            return await run_in_threadpool(
-                active_engine().predict, session_id, content, pictures, transcript, speaker)
-        except (ValueError, RuntimeError) as exc:
-            raise HTTPException(status_code=400, detail=str(exc)) from exc
-        except Exception:
-            LOG.exception('Unexpected error during DiGemo inference')
-            raise HTTPException(status_code=500, detail='Lỗi inference nội bộ. Kiểm tra cửa sổ PowerShell.')
 
     return app
 
@@ -348,6 +307,7 @@ def main():
     parser.add_argument('--torch-device', choices=('auto', 'cuda', 'cpu'), default='auto')
     parser.add_argument('--whisper-model', default='large-v3')
     parser.add_argument('--meld-csv', default='MELD_pro/test_sent_emo.csv', help='Đường dẫn test_sent_emo.csv (chế độ MELD ở trang video)')
+    parser.add_argument('--meld-timestamps', default='MELD_pro/utterance_timestamps.csv', help='utterance_timestamps.csv do merge_meld_video.py tạo (mặc định: tìm cạnh test_sent_emo.csv)')
     parser.add_argument('--window', type=int, default=10)
     parser.add_argument('--host', default='127.0.0.1')
     parser.add_argument('--port', type=int, default=8000)
@@ -361,6 +321,9 @@ def main():
     if args.meld_csv:
         import os
         os.environ['DIGEMO_MELD_CSV'] = str(in_project(args.meld_csv))
+    if args.meld_timestamps:
+        import os
+        os.environ['DIGEMO_MELD_TS'] = str(in_project(args.meld_timestamps))
     args.checkpoint = in_project(args.checkpoint)
     args.features_dir = in_project(args.features_dir)
     candidates = [args.features_dir / 'roberta_meld_ft.pt',
@@ -376,7 +339,7 @@ def main():
     engine = DiGemoEngine(args)
     print(f'\n[web] Ready! Open http://127.0.0.1:{args.port}\n', flush=True)
     if args.host not in ('127.0.0.1', 'localhost', '::1'):
-        print('[SECURITY] LAN exposure requested. Use trusted networks and HTTPS for browser camera/microphone.', flush=True)
+        print('[SECURITY] Server mở ra mạng và KHÔNG có đăng nhập: đặt sau reverse proxy có mật khẩu/HTTPS nếu để công khai.', flush=True)
     uvicorn.run(create_app(engine), host=args.host, port=args.port, log_level='info')
 
 

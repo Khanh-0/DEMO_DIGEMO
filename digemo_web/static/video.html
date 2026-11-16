@@ -26,7 +26,6 @@
     <aside class="sidebar">
       <div class="brand"><div class="brand-mark">D<span>.</span></div><div class="brand-name">DiGemo<span>Studio</span><small>MULTIMODAL AI LAB</small></div></div>
       <p class="side-caption">WORKSPACE</p>
-      <a class="side-link" href="/"><svg class="icon"><use href="#i-brain"/></svg><span>Emotion Studio</span></a>
       <a class="side-link active" href="/video"><svg class="icon"><use href="#i-video"/></svg><span>Phân tích video</span><span class="active-dot"></span></a>
       <div class="sidebar-bottom">
         <div class="privacy-note"><svg class="icon"><use href="#i-shield"/></svg><span>Video được lưu tạm trên PC của bạn để xử lý, tự xóa sau 2 giờ hoặc khi bạn bấm Xóa video.</span></div>
@@ -62,8 +61,8 @@
             <div class="opt"><label for="meldId">Dialogue_ID cần demo</label><input type="number" id="meldId" min="0" step="1" placeholder="vd. 12"></div>
             <div class="opt"><label for="meldTime">Cách tính thời gian trong video</label>
               <select id="meldTime">
-                <option value="offset">Giữ khoảng nghỉ gốc (trừ mốc câu đầu)</option>
-                <option value="concat">Nối liền các câu (video gộp, bỏ khoảng nghỉ)</option>
+                <option value="concat" selected>Video đã gộp (đọc mốc từ utterance_timestamps.csv)</option>
+                <option value="offset">Video liền mạch, giữ khoảng nghỉ gốc (trừ mốc câu đầu)</option>
               </select>
             </div>
             <button type="button" id="meldLoadBtn" class="btn btn-outline">Xem trước dialogue</button>

@@ -203,3 +203,5 @@ Sau đó thêm `--mic-index <SỐ>` và/hoặc `--camera-index <SỐ>` vào lệ
 | `app.py` không tồn tại hoặc báo `unrecognized arguments` | Kiểm tra đúng backend web và tham số của phiên bản thực tế; mã nguồn web chưa được đối chiếu. |
 
 
+lenh set: $env:DIGEMO_OVERLAP_ASR = "1" 
+python E:\Do_an\DEMO\demo_meld\digemo_web\app.py --host 0.0.0.0   
