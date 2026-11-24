@@ -1,0 +1,57 @@
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Model checkpoints
+*.pth
+*.pt
+*.ckpt
+*.safetensors
+*.bin
+
+# Training features and datasets
+*.pkl
+*.pickle
+*.npz
+*.npy
+
+# Training logs
+runs/
+logs/
+lightning_logs/
+wandb/
+
+# Temporary and backup files
+*.bak
+*.tmp
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+
+# Ignore MELD training data
+data/csv/*.csv
+data/utterance_timestamps.csv
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Backup files
+*.bak
+
+# IDE
+.vscode/

@@ -1,0 +1,875 @@
+<!-- <!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#060c18">
+  <meta name="description" content="DiGemo Emotion Studio — Phân tích cảm xúc đa phương thức từ video bằng AI">
+  <title>DiGemo · Emotion Studio</title>
+  <!-- Design System CSS (modular)  
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/upload.css">
+  <link rel="stylesheet" href="/static/css/table.css">
+  <link rel="stylesheet" href="/static/css/report.css">
+  <link rel="stylesheet" href="/static/css/motion.css">
+</head>
+
+<body>
+  <!-- Ambient background  
+  <div class="ambient orb-one" aria-hidden="true"></div>
+  <div class="ambient orb-two" aria-hidden="true"></div>
+  <div class="ambient orb-three" aria-hidden="true"></div>
+
+  <!-- SVG icon defs  
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-video" viewBox="0 0 24 24">
+      <rect x="2" y="5" width="15" height="14" rx="3" />
+      <path d="m17 10 5-3v10l-5-3" />
+    </symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24">
+      <path
+        d="M12 18V5a3 3 0 0 0-5.7-1.3A4 4 0 0 0 4 10a4 4 0 0 0 1 7 3 3 0 0 0 7 1Zm0 0V5a3 3 0 0 1 5.7-1.3A4 4 0 0 1 20 10a4 4 0 0 1-1 7 3 3 0 0 1-7 1Z" />
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="m8 5 11 7-11 7V5Z" />
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3 2 21h20L12 3Z M12 9v5 M12 18v.1" />
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24">
+      <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z" />
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 2 21 6v6c0 5.3-3.7 8.9-9 10-5.3-1.1-9-4.7-9-10V6l9-4Z" />
+      <path d="m9 12 2 2 4-4" />
+    </symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24">
+      <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 4v12M7 11l5 5 5-5M4 20h16" />
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 5 5L20 7" />
+    </symbol>
+    <symbol id="i-film" viewBox="0 0 24 24">
+      <rect x="2" y="2" width="20" height="20" rx="2.18" />
+      <path d="M7 2v20M17 2v20M2 12h20M2 7h5M2 17h5M17 17h5M17 7h5" />
+    </symbol>
+  </svg>
+
+        <!-- ========== TOPBAR ==========  
+        <header class="topbar" id="topbar">
+          <div class="topbar-left">
+            <div class="brand">
+              <div class="brand-mark">D<span>.</span></div>
+              <div class="brand-name">DiGemo<span>Studio</span><small>MULTIMODAL AI LAB</small></div>
+            </div>
+      <nav class="nav-links">
+        <a class="nav-link active" href="/video">
+          <svg class="icon">
+            <use href="#i-video" />
+          </svg>
+          <span>Phân tích video</span>
+        </a>
+      </nav>
+  </div>
+  <div class="topbar-right">
+    <div class="breadcrumb">
+      Workspace <span>/</span> <strong>Phân tích video</strong>
+    </div>
+    <span class="avatar">AI</span>
+  </div>
+  </header>
+
+      <!-- ========== MAIN ==========  
+      <main class="main">
+
+        <!-- Intro  
+        <section class="intro">
+          <div class="eyebrow">
+            <svg class="icon">
+              <use href="#i-sparkle" />
+            </svg>
+            VIDEO → UTTERANCE → EMOTION
+          </div>
+          <h1>Đưa video vào, <span>nhận cảm xúc từng câu nói.</span></h1>
+          <p>Whisper tách câu, phân cụm giọng nói theo số người bạn chọn, rồi RoBERTa · Wav2Vec2 · DenseNet tạo đặc
+            trưng cho DiGemo. Bạn có thể sửa bảng utterance hoặc nạp CSV giống lúc training.</p>
+        </section>
+
+        <!-- Stepper  
+        <div class="stepper" id="stepper">
+          <div class="step-indicator active" data-step="1">
+            <span class="step-num">1</span>
+            <span>Upload & cài đặt</span>
+          </div>
+          <div class="step-connector" id="conn1"></div>
+          <div class="step-indicator" data-step="2">
+            <span class="step-num">2</span>
+            <span>Xem & sửa utterance</span>
+          </div>
+          <div class="step-connector" id="conn2"></div>
+          <div class="step-indicator" data-step="3">
+            <span class="step-num">3</span>
+            <span>Dự đoán cảm xúc</span>
+          </div>
+        </div>
+
+        <!-- ===== STEP 1: Upload =====  
+        <section class="panel step-card" id="uploadCard">
+          <div class="panel-heading">
+            <div>
+              <div class="section-kicker">BƯỚC 1</div>
+              <h2>Video và cài đặt</h2>
+            </div>
+            <span class="tag" id="jobTag">CHƯA CHẠY</span>
+          </div>
+
+          <div class="upload-zone">
+            <!-- Main video drop zone (big)  
+            <label class="drop" for="videoFile" id="videoDrop">
+              <svg class="icon">
+                <use href="#i-upload" />
+              </svg>
+              <strong id="videoName">Kéo video vào đây hoặc bấm để chọn</strong>
+              <small>MP4, AVI, MOV, MKV, WebM · Tối đa 10 phút, 800 MB · Cần có hình và tiếng Anh</small>
+            </label>
+            <input type="file" id="videoFile" accept="video/*,.mkv" hidden>
+
+            <!-- CSV + Speaker settings side by side  
+            <div class="upload-sub">
+              <label class="drop small" id="csvDrop" for="csvFile">
+                <svg class="icon">
+                  <use href="#i-upload" />
+                </svg>
+                <strong id="csvName">CSV utterance (tùy chọn)</strong>
+                <small>Cột: Dialogue_ID, Speaker, Utterance, StartTime, EndTime, Emotion</small>
+              </label>
+              <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+
+              <div class="opt-group">
+                <div class="opt" id="speakerOpt">
+                  <label for="numSpeakers">Số người nói</label>
+                  <div class="chips" id="speakerChips">
+                    <button type="button" data-n="2" class="chip active">2</button>
+                    <button type="button" data-n="3" class="chip">3</button>
+                    <button type="button" data-n="4" class="chip">4</button>
+                    <button type="button" data-n="5" class="chip">5</button>
+                  </div>
+                  <input type="number" id="numSpeakers" min="1" max="8" value="2">
+                </div>
+                <div class="opt">
+                  <label for="maxPer">Tối đa utterance / hội thoại</label>
+                  <input type="number" id="maxPer" min="2" max="100" value="30">
+                  <small>MELD thường dưới 30 câu mỗi hội thoại.</small>
+                </div>
+                <label class="manual-switch meld-switch">
+                  <input type="checkbox" id="meldMode">
+                  <span class="toggle" aria-hidden="true"></span>
+                  <span>Dùng dữ liệu MELD <small>(đọc test_sent_emo.csv)</small></span>
+                </label>
+              </div>
+            </div>
+              </div>
+
+              <!-- MELD mode box  
+              <div class="meld-box hidden" id="meldBox">
+                <div class="meld-fields">
+                  <div class="opt">
+                    <label for="meldId">Dialogue_ID cần demo</label>
+                    <input type="number" id="meldId" min="0" step="1" placeholder="vd. 12">
+                  </div>
+                  <div class="opt">
+                    <label for="meldTime">Cách tính thời gian trong video</label>
+                    <select id="meldTime">
+                      <option value="concat" selected>Video đã gộp (đọc mốc từ utterance_timestamps.csv)</option>
+                      <option value="offset">Video liền mạch, giữ khoảng nghỉ gốc (trừ mốc câu đầu)</option>
+                    </select>
+                  </div>
+                  <button type="button" id="meldLoadBtn" class="btn btn-outline">Xem trước dialogue</button>
+                </div>
+                    <p class="hint" id="meldInfo">Nhập Dialogue_ID rồi chọn đúng video đã gộp của dialogue đó. Text,
+                      người nói, thời gian và nhãn đúng lấy từ CSV, không chạy Whisper.</p>
+                    <div class="meld-preview hidden" id="meldPreview"></div>
+                  </div>
+
+                  <!-- Action buttons  
+                  <div class="capture-actions">
+                    <button id="clearBtn" class="btn btn-secondary" disabled>
+                      <svg class="icon">
+                        <use href="#i-trash" />
+                      </svg>
+                      <span>Xóa video</span>
+                    </button>
+                    <button id="analyzeBtn" class="btn btn-primary" disabled>
+                      <svg class="icon">
+                        <use href="#i-sparkle" />
+                      </svg>
+                      <span>Phân đoạn video</span>
+                    </button>
+                  </div>
+
+                  <!-- Progress  
+                  <div class="progress hidden" id="progress">
+                    <div class="bar"><i id="progressBar"></i></div>
+                    <span id="progressText"></span>
+                  </div>
+
+                  <p class="hint" id="autoHint">Không có CSV: Whisper tự tách câu và phân cụm giọng thành N người. Cách
+                    này gần đúng, hãy kiểm tra và sửa cột Speaker ở bước 2.</p>
+        </section>
+
+        <!-- ===== Review: Video + Speaker Slots =====  
+        <div class="dashboard-grid hidden" id="reviewGrid">
+          <section class="panel step-card">
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">XEM TRƯỚC</div>
+                <h2>Video</h2>
+              </div>
+            </div>
+            <video id="player" controls playsinline></video>
+          </section>
+          <section class="panel step-card">
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">ÁNH XẠ SPEAKER</div>
+                <h2>Speaker → slot của model</h2>
+              </div>
+            </div>
+            <p class="hint" style="margin-top:0">Checkpoint có 9 slot (0–7 nhân vật MELD, 8 = Other). Mỗi người nên dùng
+              một slot riêng; thử vài cách gán để so kết quả.</p>
+            <div id="slotList" class="slot-list"></div>
+          </section>
+        </div>
+
+          <!-- ===== STEP 2: Utterance Table =====  
+          <section class="panel step-card hidden" id="tableCard">
+            <div class="panel-heading">
+              <div>
+                <div class="section-kicker">BƯỚC 2</div>
+                <h2>Bảng utterance <span class="count" id="rowCount">0</span></h2>
+              </div>
+              <div class="head-actions">
+                <button id="addRowBtn" class="btn btn-outline" type="button">Thêm dòng</button>
+                <button id="dlInputBtn" class="btn btn-outline" type="button">
+                  <svg class="icon">
+                    <use href="#i-download" />
+                  </svg> CSV đầu vào
+                </button>
+                <button id="predictBtn" class="btn btn-primary" type="button">
+                  <svg class="icon">
+                    <use href="#i-brain" />
+                  </svg>
+                  <span>Dự đoán cảm xúc</span>
+                </button>
+              </div>
+            </div>
+            <div class="summary hidden" id="summary"></div>
+            <div class="table-wrap">
+              <div class="utt-table" id="uttTable"></div>
+            </div>
+            <datalist id="speakerList"></datalist>
+            <div class="head-actions end">
+              <button id="dlResultBtn" class="btn btn-outline hidden" type="button">
+                <svg class="icon">
+                  <use href="#i-download" />
+                </svg> CSV kết quả
+              </button>
+            </div>
+          </section>
+
+              <!-- ===== STEP 3: MELD Report =====  
+              <section class="panel step-card hidden" id="reportCard">
+                <div class="panel-heading">
+                  <div>
+                    <div class="section-kicker">BÁO CÁO MELD</div>
+                    <h2>Đúng / sai so với nhãn CSV <span class="count" id="reportDia">—</span></h2>
+                  </div>
+                    <span class="tag ready" id="reportTag">—</span>
+                  </div>
+
+                  <div class="report-top">
+                    <div class="donut-wrap">
+                      <svg id="donut" viewBox="0 0 120 120" width="150" height="150" role="img"
+                        aria-label="Độ chính xác"></svg>
+                      <div class="donut-center"><strong id="donutPct">—</strong><small>ACCURACY</small></div>
+                    </div>
+      <div class="report-stats" id="reportStats"></div>
+    </div>
+
+    <div class="chart-head">
+      <h3>Dòng thời gian từng câu</h3>
+      <span>XANH = ĐÚNG · ĐỎ = SAI</span>
+    </div>
+    <div class="timeline" id="timeline"></div>
+
+    <div class="report-cols">
+      <div>
+        <div class="chart-head">
+          <h3>Đúng / sai theo nhãn thật</h3><span>PER EMOTION</span>
+        </div>
+        <div id="emoBars" class="emo-bars"></div>
+      </div>
+      <div>
+        <div class="chart-head">
+          <h3>Ma trận nhầm lẫn</h3><span>THẬT × DỰ ĐOÁN</span>
+        </div>
+        <div id="confMatrix" class="conf-wrap"></div>
+      </div>
+    </div>
+
+    <div class="chart-head">
+      <h3>Các dialogue đã chạy</h3><span id="runTotal"></span>
+    </div>
+    <div class="run-list" id="runList"></div>
+    <div class="head-actions end">
+      <button id="clearRunsBtn" class="btn btn-outline" type="button">Xóa lịch sử chạy</button>
+    </div>
+  </section>
+
+  <!-- Privacy & Footer  
+  <div class="privacy-note">
+    <svg class="icon">
+      <use href="#i-shield" />
+    </svg>
+    <span>Video được lưu tạm trên PC của bạn để xử lý, tự xóa sau 2 giờ hoặc khi bạn bấm Xóa video.</span>
+  </div>
+
+  <footer>
+    <span>DiGemo Emotion Studio · Research prototype</span>
+    <span>Không phải đánh giá tâm lý · Tiếng Anh / MELD</span>
+  </footer>
+  </main>
+
+  <!-- Toast  
+  <div class="toast hidden" id="toast" role="alert">
+    <svg class="icon">
+      <use href="#i-alert" />
+    </svg>
+    <span id="toastText"></span>
+    <button id="toastClose" aria-label="Đóng">×</button>
+  </div>
+
+  <script defer src="/static/video.js?v=redesign"></script>
+  <script>
+    // Topbar scroll shadow
+    window.addEventListener('scroll', () => {
+      document.getElementById('topbar').classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // Drag-and-drop visual feedback for drop zones
+    document.querySelectorAll('.drop').forEach(drop => {
+      const input = drop.getAttribute('for');
+      ['dragenter', 'dragover'].forEach(e => {
+        drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('drag-over'); });
+      });
+      ['dragleave', 'drop'].forEach(e => {
+        drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('drag-over'); });
+      });
+      drop.addEventListener('drop', ev => {
+        ev.preventDefault();
+        const files = ev.dataTransfer.files;
+        if (files.length && input) {
+          const el = document.getElementById(input);
+          if (el) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            el.files = dt.files;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+      });
+    });
+
+    // Stepper logic
+    window.updateStepper = function (activeStep) {
+      document.querySelectorAll('.step-indicator').forEach(si => {
+        const step = parseInt(si.dataset.step);
+        si.classList.remove('active', 'done');
+        if (step < activeStep) si.classList.add('done');
+        else if (step === activeStep) si.classList.add('active');
+      });
+      const c1 = document.getElementById('conn1');
+      const c2 = document.getElementById('conn2');
+      if (c1) c1.classList.toggle('filled', activeStep > 1);
+      if (c2) c2.classList.toggle('filled', activeStep > 2);
+    };
+  </script>
+</body>
+
+</html> -->
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F4F7FB">
+  <meta name="description" content="DiGemo Emotion Studio — Phân tích cảm xúc đa phương thức từ video bằng AI">
+  <title>DiGemo · Emotion Studio</title>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/upload.css">
+  <link rel="stylesheet" href="/static/css/table.css">
+  <link rel="stylesheet" href="/static/css/report.css">
+  <link rel="stylesheet" href="/static/css/motion.css">
+</head>
+
+<body>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-video" viewBox="0 0 24 24">
+      <rect x="2" y="5" width="15" height="14" rx="3" />
+      <path d="m17 10 5-3v10l-5-3" />
+    </symbol>
+    <symbol id="i-brain" viewBox="0 0 24 24">
+      <path
+        d="M12 18V5a3 3 0 0 0-5.7-1.3A4 4 0 0 0 4 10a4 4 0 0 0 1 7 3 3 0 0 0 7 1Zm0 0V5a3 3 0 0 1 5.7-1.3A4 4 0 0 1 20 10a4 4 0 0 1-1 7 3 3 0 0 1-7 1Z" />
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="m8 5 11 7-11 7V5Z" />
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3 2 21h20L12 3Z M12 9v5 M12 18v.1" />
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24">
+      <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z" />
+    </symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24">
+      <path d="M12 2 21 6v6c0 5.3-3.7 8.9-9 10-5.3-1.1-9-4.7-9-10V6l9-4Z" />
+      <path d="m9 12 2 2 4-4" />
+    </symbol>
+    <symbol id="i-upload" viewBox="0 0 24 24">
+      <path d="M12 16V4M7 9l5-5 5 5M4 20h16" />
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 4v12M7 11l5 5 5-5M4 20h16" />
+    </symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24">
+      <path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13" />
+    </symbol>
+    <symbol id="i-check" viewBox="0 0 24 24">
+      <path d="m5 12 5 5L20 7" />
+    </symbol>
+    <symbol id="i-edit" viewBox="0 0 24 24">
+      <path d="M4 20h4L19 9l-4-4L4 16v4Z" />
+      <path d="m13.5 6.5 4 4" />
+    </symbol>
+    <symbol id="i-plus" viewBox="0 0 24 24">
+      <path d="M12 5v14M5 12h14" />
+    </symbol>
+  </svg>
+
+  <!-- ========== TOPBAR ========== -->
+  <header class="topbar" id="topbar">
+    <div class="topbar-left">
+      <div class="brand">
+        <div class="brand-mark">D<span>.</span></div>
+        <div class="brand-name">DiGemo <span>Emotion Studio</span><small>MULTIMODAL AI LAB</small></div>
+      </div>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a class="nav-link active" href="/video" aria-current="page">
+          <svg class="icon">
+            <use href="#i-video" />
+          </svg>
+          <span>Phân tích video</span>
+        </a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="breadcrumb">Workspace <span>/</span> <strong>Phân tích video</strong></div>
+      <div class="status-pill" id="appStatus" role="status" aria-live="polite">
+        <i class="status-dot"></i><span id="appStatusText">Sẵn sàng</span>
+      </div>
+      <span class="avatar" aria-hidden="true">AI</span>
+    </div>
+  </header>
+
+  <!-- ========== MAIN ========== -->
+  <main class="main">
+
+    <section class="intro">
+      <div class="eyebrow">
+        <svg class="icon">
+          <use href="#i-sparkle" />
+        </svg>
+        VIDEO → UTTERANCE → EMOTION
+      </div>
+      <h1>Đưa video vào, <span>nhận cảm xúc từng câu nói.</span></h1>
+      <p>Whisper tách câu, phân cụm giọng nói theo số người bạn chọn, rồi RoBERTa · Wav2Vec2 · DenseNet tạo đặc
+        trưng cho DiGemo. Bạn có thể sửa bảng utterance hoặc nạp CSV giống lúc training.</p>
+    </section>
+
+    <!-- Stepper -->
+    <div class="stepper" id="stepper" aria-label="Tiến trình">
+      <div class="step-indicator active" data-step="1"><span class="step-num">1</span><span>Upload &amp; cài đặt</span>
+      </div>
+      <div class="step-connector" id="conn1"></div>
+      <div class="step-indicator" data-step="2"><span class="step-num">2</span><span>Xem &amp; sửa utterance</span>
+      </div>
+      <div class="step-connector" id="conn2"></div>
+      <div class="step-indicator" data-step="3"><span class="step-num">3</span><span>Dự đoán cảm xúc</span></div>
+    </div>
+
+    <!-- ===== STEP 1: Upload ===== -->
+    <section class="panel step-card" id="uploadCard">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">BƯỚC 1</div>
+          <h2>Video và cài đặt</h2>
+        </div>
+        <span class="tag" id="jobTag">CHƯA CHẠY</span>
+      </div>
+
+      <div class="upload-zone">
+        <label class="drop" for="videoFile" id="videoDrop">
+          <svg class="icon">
+            <use href="#i-upload" />
+          </svg>
+          <strong id="videoName">Kéo video vào đây hoặc bấm để chọn</strong>
+          <small id="videoHelp">MP4, AVI, MOV, MKV, WebM · Tối đa 10 phút, 800 MB · Cần có hình và tiếng Anh</small>
+          <div class="file-meta hidden" id="videoMeta"></div>
+        </label>
+        <input type="file" id="videoFile" accept="video/*,.mkv" hidden>
+
+        <div class="upload-sub">
+          <label class="drop small" id="csvDrop" for="csvFile">
+            <svg class="icon">
+              <use href="#i-upload" />
+            </svg>
+            <strong id="csvName">CSV utterance (tùy chọn)</strong>
+            <small>Cột: Dialogue_ID, Speaker, Utterance, StartTime, EndTime, Emotion</small>
+          </label>
+          <input type="file" id="csvFile" accept=".csv,text/csv" hidden>
+
+          <div class="opt-group">
+            <div class="opt" id="speakerOpt">
+              <label for="numSpeakers">Số người nói</label>
+              <div class="speaker-controls">
+                <div class="chips" id="speakerChips">
+                  <button type="button" data-n="2" class="chip active">2</button>
+                  <button type="button" data-n="3" class="chip">3</button>
+                  <button type="button" data-n="4" class="chip">4</button>
+                  <button type="button" data-n="5" class="chip">5</button>
+                </div>
+                <input type="number" id="numSpeakers" min="1" max="8" value="2" style="width:76px">
+              </div>
+            </div>
+            <div class="opt">
+              <label for="maxPer">Tối đa utterance / hội thoại</label>
+              <input type="number" id="maxPer" min="2" max="100" value="30">
+              <small>MELD thường dưới 30 câu mỗi hội thoại.</small>
+            </div>
+            <label class="manual-switch meld-switch">
+              <input type="checkbox" id="meldMode">
+              <span class="toggle" aria-hidden="true"></span>
+              <span>Dùng dữ liệu MELD <small>(đọc test_sent_emo.csv)</small></span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- MELD mode box -->
+      <div class="meld-box hidden" id="meldBox">
+        <div class="meld-fields">
+          <div class="opt">
+            <label for="meldId">Dialogue_ID cần demo</label>
+            <input type="number" id="meldId" min="0" step="1" placeholder="vd. 12">
+          </div>
+          <div class="opt">
+            <label for="meldTime">Cách tính thời gian trong video</label>
+            <select id="meldTime">
+              <option value="concat" selected>Video đã gộp (đọc mốc từ utterance_timestamps.csv)</option>
+              <option value="offset">Video liền mạch, giữ khoảng nghỉ gốc (trừ mốc câu đầu)</option>
+            </select>
+          </div>
+          <button type="button" id="meldLoadBtn" class="btn btn-outline">Xem trước dialogue</button>
+        </div>
+        <p class="hint" id="meldInfo">Nhập Dialogue_ID rồi chọn đúng video đã gộp của dialogue đó. Text, người nói, thời
+          gian và nhãn đúng lấy từ CSV, không chạy Whisper.</p>
+        <div class="meld-preview hidden" id="meldPreview"></div>
+      </div>
+
+      <div class="capture-actions">
+        <button id="clearBtn" class="btn btn-secondary" disabled>
+          <svg class="icon">
+            <use href="#i-trash" />
+          </svg><span>Xóa video</span>
+        </button>
+        <button id="analyzeBtn" class="btn btn-primary" disabled>
+          <svg class="icon">
+            <use href="#i-sparkle" />
+          </svg><span>Phân đoạn video</span>
+        </button>
+      </div>
+
+      <div class="progress hidden" id="progress">
+        <div class="bar"><i id="progressBar"></i></div>
+        <span id="progressText"></span>
+      </div>
+
+      <p class="hint" id="autoHint">Không có CSV: Whisper tự tách câu và phân cụm giọng thành N người. Cách này gần
+        đúng, hãy kiểm tra và sửa cột Speaker ở bước 2.</p>
+    </section>
+
+    <!-- ===== Video workspace: preview + speaker slots ===== -->
+    <div class="workspace-grid hidden" id="reviewGrid">
+      <section class="panel step-card">
+        <div class="panel-heading">
+          <div>
+            <div class="section-kicker">XEM TRƯỚC</div>
+            <h2>Video</h2>
+          </div>
+        </div>
+        <div class="video-frame"><video id="player" controls playsinline preload="metadata"></video></div>
+      </section>
+      <section class="panel step-card">
+        <div class="panel-heading">
+          <div>
+            <div class="section-kicker">ÁNH XẠ SPEAKER</div>
+            <h2>Speaker → slot của model</h2>
+          </div>
+        </div>
+        <p class="hint" style="margin-top:0">Checkpoint có 9 slot (0–7 nhân vật MELD, 8 = Other). Mỗi người nên dùng một
+          slot riêng; thử vài cách gán để so kết quả.</p>
+        <div id="slotList" class="slot-list"></div>
+      </section>
+    </div>
+
+    <!-- ===== STEP 2: Utterance table ===== -->
+    <section class="panel step-card hidden" id="tableCard">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">BƯỚC 2</div>
+          <h2>Bảng utterance <span class="count" id="rowCount">0</span></h2>
+        </div>
+        <button id="predictBtn" class="btn btn-primary" type="button">
+          <svg class="icon">
+            <use href="#i-brain" />
+          </svg><span>Dự đoán cảm xúc</span>
+        </button>
+      </div>
+
+      <div class="table-toolbar" role="toolbar" aria-label="Công cụ bảng utterance">
+        <div class="toolbar-group">
+          <button id="editToggle" class="btn btn-outline btn-sm active" type="button" aria-pressed="true">
+            <svg class="icon">
+              <use href="#i-edit" />
+            </svg><span>Chỉnh sửa</span>
+          </button>
+          <button id="addRowBtn" class="btn btn-outline btn-sm" type="button">
+            <svg class="icon">
+              <use href="#i-plus" />
+            </svg><span>Thêm dòng</span>
+          </button>
+        </div>
+        <div class="toolbar-group filters">
+          <select id="fSpeaker" aria-label="Lọc theo speaker">
+            <option value="">Mọi speaker</option>
+          </select>
+          <select id="fEmotion" aria-label="Lọc theo cảm xúc">
+            <option value="">Mọi cảm xúc</option>
+          </select>
+          <input type="search" id="fQuery" placeholder="Tìm trong transcript…" aria-label="Tìm trong transcript">
+          <span class="filter-info" id="filterInfo"></span>
+        </div>
+        <div class="toolbar-group">
+          <button id="dlInputBtn" class="btn btn-outline btn-sm" type="button">
+            <svg class="icon">
+              <use href="#i-download" />
+            </svg><span>CSV đầu vào</span>
+          </button>
+          <button id="dlResultBtn" class="btn btn-outline btn-sm hidden" type="button">
+            <svg class="icon">
+              <use href="#i-download" />
+            </svg><span>CSV kết quả</span>
+          </button>
+          <button id="dlServerBtn" class="btn btn-outline btn-sm hidden" type="button"
+            title="Bản CSV do máy chủ tạo (để đối chiếu)">
+            <svg class="icon">
+              <use href="#i-download" />
+            </svg><span>CSV máy chủ</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="summary hidden" id="summary"></div>
+      <div class="stale-note hidden" id="staleNote" role="status"></div>
+      <div class="table-wrap">
+        <div class="utt-table" id="uttTable"></div>
+      </div>
+      <datalist id="speakerList"></datalist>
+    </section>
+
+    <!-- Skeleton while processing -->
+    <section class="panel skeleton-group hidden" id="skeleton" aria-hidden="true">
+      <div class="skeleton lg"></div>
+      <div class="skeleton lg"></div>
+      <div class="skeleton lg"></div>
+    </section>
+
+    <!-- ===== STEP 3: Emotion analytics ===== -->
+    <section class="hidden" id="analyticsCard" aria-label="Phân tích cảm xúc">
+      <div class="analytics-grid">
+        <div class="panel analytics-block span-2">
+          <div class="analytics-title">A · TỔNG QUAN</div>
+          <div class="chart-head">
+            <h3>Overview</h3><span id="ovNote"></span>
+          </div>
+          <div class="overview-stats" id="ovStats"></div>
+        </div>
+
+        <div class="panel analytics-block">
+          <div class="analytics-title">B · PHÂN BỐ CẢM XÚC</div>
+          <div class="chart-head">
+            <h3>Emotion distribution</h3><span>THEO UTTERANCE</span>
+          </div>
+          <div class="donut-row">
+            <div class="donut-wrap">
+              <svg id="distDonut" viewBox="0 0 120 120" role="img" aria-label="Phân bố cảm xúc"></svg>
+              <div class="donut-center"><strong id="distTotal">0</strong><small>UTTERANCE</small></div>
+            </div>
+            <div class="legend" id="distLegend"></div>
+          </div>
+        </div>
+
+        <div class="panel analytics-block">
+          <div class="analytics-title">C · DIỄN BIẾN THEO THỜI GIAN</div>
+          <div class="chart-head">
+            <h3>Emotion timeline</h3>
+            <select id="tlSpeaker" aria-label="Lọc timeline theo speaker">
+              <option value="">Mọi speaker</option>
+            </select>
+          </div>
+          <div class="tl-chart-wrap">
+            <div class="tl-scroll">
+              <div class="tl-chart" id="tlChart"></div>
+              <div class="tl-axis" id="tlAxis"></div>
+            </div>
+          </div>
+          <div class="tl-legend" id="tlLegend"></div>
+          <p class="tl-note">Mỗi cột là một utterance; chiều cao = độ tin cậy. Bấm vào cột để phát đoạn tương ứng.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== MELD report ===== -->
+    <section class="panel step-card hidden" id="reportCard" style="margin-top:var(--sp-5)">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">BÁO CÁO MELD</div>
+          <h2>Đúng / sai so với nhãn CSV <span class="count" id="reportDia">—</span></h2>
+        </div>
+        <span class="tag ready" id="reportTag">—</span>
+      </div>
+
+      <div class="report-top">
+        <div class="donut-wrap">
+          <svg id="donut" viewBox="0 0 120 120" role="img" aria-label="Độ chính xác"></svg>
+          <div class="donut-center"><strong id="donutPct">—</strong><small>ACCURACY</small></div>
+        </div>
+        <div class="report-stats" id="reportStats"></div>
+      </div>
+
+      <div class="chart-head">
+        <h3>Dòng thời gian từng câu</h3><span>XANH = ĐÚNG · ĐỎ = SAI</span>
+      </div>
+      <div class="timeline" id="timeline"></div>
+
+      <div class="report-cols">
+        <div>
+          <div class="chart-head">
+            <h3>Đúng / sai theo nhãn thật</h3><span>PER EMOTION</span>
+          </div>
+          <div id="emoBars" class="emo-bars"></div>
+        </div>
+        <div>
+          <div class="chart-head">
+            <h3>Ma trận nhầm lẫn</h3><span>THẬT × DỰ ĐOÁN</span>
+          </div>
+          <div id="confMatrix" class="conf-wrap"></div>
+        </div>
+      </div>
+
+      <div class="chart-head">
+        <h3>Các dialogue đã chạy</h3><span id="runTotal"></span>
+      </div>
+      <div class="run-list" id="runList"></div>
+      <div class="head-actions end">
+        <button id="clearRunsBtn" class="btn btn-outline btn-sm" type="button">Xóa lịch sử chạy</button>
+      </div>
+    </section>
+
+    <div class="privacy-note">
+      <svg class="icon">
+        <use href="#i-shield" />
+      </svg>
+      <span>Video được lưu tạm trên PC của bạn để xử lý, tự xóa sau 2 giờ hoặc khi bạn bấm Xóa video.</span>
+    </div>
+
+    <footer>
+      <span>DiGemo Emotion Studio · Research prototype</span>
+      <span>Không phải đánh giá tâm lý · Tiếng Anh / MELD</span>
+    </footer>
+  </main>
+
+  <div class="chart-tip hidden" id="chartTip" role="tooltip"></div>
+
+  <!-- Toast -->
+  <div class="toast hidden" id="toast" role="alert">
+    <svg class="icon">
+      <use href="#i-alert" />
+    </svg>
+    <span id="toastText"></span>
+    <button id="toastClose" aria-label="Đóng">×</button>
+  </div>
+
+  <script defer src="/static/video.js?v=light1"></script>
+  <script>
+    // Topbar shadow once scrolled
+    window.addEventListener('scroll', () => {
+      document.getElementById('topbar').classList.toggle('scrolled', window.scrollY > 10);
+    }, { passive: true });
+
+    // Drag-and-drop for the drop zones
+    document.querySelectorAll('.drop').forEach(drop => {
+      const input = drop.getAttribute('for');
+      ['dragenter', 'dragover'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.add('drag-over'); }));
+      ['dragleave', 'drop'].forEach(e => drop.addEventListener(e, ev => { ev.preventDefault(); drop.classList.remove('drag-over'); }));
+      drop.addEventListener('drop', ev => {
+        const files = ev.dataTransfer && ev.dataTransfer.files;
+        if (files && files.length && input) {
+          const el = document.getElementById(input);
+          if (el) {
+            const dt = new DataTransfer();
+            dt.items.add(files[0]);
+            el.files = dt.files;
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+        }
+      });
+    });
+
+    // Stepper
+    window.updateStepper = function (activeStep) {
+      document.querySelectorAll('.step-indicator').forEach(si => {
+        const step = parseInt(si.dataset.step, 10);
+        si.classList.remove('active', 'done');
+        if (step < activeStep) si.classList.add('done');
+        else if (step === activeStep) si.classList.add('active');
+      });
+      document.getElementById('conn1').classList.toggle('filled', activeStep > 1);
+      document.getElementById('conn2').classList.toggle('filled', activeStep > 2);
+    };
+  </script>
+</body>
+
+</html>

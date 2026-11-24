@@ -1,0 +1,325 @@
+/* ============================================================
+   DiGemo Emotion Studio — Upload (Step 1) & Video workspace
+   ============================================================ */
+
+.upload-zone {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+}
+
+/* Drop zones */
+.drop {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  text-align: center;
+  padding: var(--sp-10) var(--sp-6);
+  border: 2px dashed var(--border-2);
+  border-radius: var(--r-xl);
+  background: var(--surface-1);
+  color: var(--sub);
+  cursor: pointer;
+  transition: border-color var(--dur-normal), background var(--dur-normal);
+}
+
+.drop:hover,
+.drop.drag-over {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.drop.has-file {
+  border-style: solid;
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.drop strong {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--ink);
+  word-break: break-word;
+}
+
+.drop small {
+  font-size: var(--text-xs);
+  color: var(--muted);
+}
+
+.drop .icon {
+  width: 30px;
+  height: 30px;
+  color: var(--primary);
+  margin-bottom: var(--sp-1);
+}
+
+.drop.drag-over .icon {
+  transform: translateY(-4px);
+  transition: transform 0.2s var(--ease-out);
+}
+
+.drop.small {
+  padding: var(--sp-5) var(--sp-4);
+  justify-content: center;
+  height: 100%;
+}
+
+.drop.small .icon {
+  width: 22px;
+  height: 22px;
+  margin: 0;
+}
+
+.drop.small strong {
+  font-size: var(--text-sm);
+}
+
+/* File meta chips: name · size · format · status */
+.file-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  justify-content: center;
+  margin-top: var(--sp-2);
+}
+
+.file-meta .meta-chip {
+  font-size: var(--text-xs);
+  padding: 3px 10px;
+  border-radius: var(--r-full);
+  background: var(--card);
+  border: 1px solid var(--border-2);
+  color: var(--sub);
+  font-weight: 500;
+}
+
+.file-meta .meta-chip.status {
+  color: var(--secondary);
+  border-color: #B9DFD9;
+  background: var(--secondary-soft);
+  font-weight: 600;
+}
+
+.file-meta .meta-chip.status.busy {
+  color: var(--warning);
+  border-color: #FDE68A;
+  background: var(--warning-bg);
+}
+
+.file-meta .meta-chip.status.done {
+  color: var(--success);
+  border-color: #BBF7D0;
+  background: var(--success-bg);
+}
+
+/* CSV + settings */
+.upload-sub {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: var(--sp-4);
+  align-items: stretch;
+}
+
+.opt-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid var(--border);
+  border-radius: var(--r-xl);
+  background: var(--card);
+}
+
+.opt {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--text-xs);
+  color: var(--sub);
+}
+
+.opt label {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.opt input[type="number"] {
+  width: 100px;
+}
+
+.opt small {
+  color: var(--muted);
+}
+
+.manual-switch.opt {
+  flex-direction: row;
+  align-items: center;
+  margin: 0;
+}
+
+.speaker-controls {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  flex-wrap: wrap;
+}
+
+/* MELD box */
+.meld-box {
+  margin-top: var(--sp-4);
+  padding: var(--sp-4);
+  border: 1px solid #B9DFD9;
+  border-radius: var(--r-lg);
+  background: var(--secondary-soft);
+}
+
+.meld-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-4);
+  align-items: flex-end;
+}
+
+.meld-fields .opt input[type="number"] {
+  width: 130px;
+}
+
+.meld-fields .opt select {
+  min-width: 260px;
+  max-width: 100%;
+}
+
+.meld-preview {
+  margin-top: var(--sp-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.meld-preview .pill {
+  padding: 5px var(--sp-3);
+  border-radius: var(--r-full);
+  background: var(--card);
+  border: 1px solid #B9DFD9;
+  font-size: var(--text-xs);
+  color: var(--sub);
+}
+
+/* Actions + progress */
+.capture-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+  gap: var(--sp-3);
+  margin-top: var(--sp-4);
+}
+
+.progress {
+  margin-top: var(--sp-4);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  font-size: var(--text-xs);
+  color: var(--sub);
+}
+
+.progress .bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-3);
+  border-radius: var(--r-full);
+  overflow: hidden;
+}
+
+.progress .bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  background: var(--primary);
+  border-radius: var(--r-full);
+  transition: width 0.4s var(--ease-out);
+}
+
+/* Video preview: keep aspect ratio, never stretch */
+.video-frame {
+  border-radius: var(--r-lg);
+  overflow: hidden;
+  background: #0F172A;
+  aspect-ratio: 16 / 9;
+}
+
+#player {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 440px;
+  object-fit: contain;
+  background: #0F172A;
+}
+
+/* Speaker slots */
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.slot-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-3);
+  padding: var(--sp-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  font-size: var(--text-sm);
+}
+
+.slot-item>span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-weight: 500;
+}
+
+.slot-item select {
+  width: auto;
+  flex-shrink: 0;
+  min-width: 120px;
+  padding: 6px var(--sp-3);
+  font-size: var(--text-xs);
+}
+
+@media (max-width: 860px) {
+  .upload-sub {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 540px) {
+  .drop {
+    padding: var(--sp-6) var(--sp-4);
+  }
+
+  .capture-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .meld-fields .opt select {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .meld-fields .opt,
+  .meld-fields .btn {
+    width: 100%;
+  }
+
+  .meld-fields .opt input[type="number"] {
+    width: 100%;
+  }
+}

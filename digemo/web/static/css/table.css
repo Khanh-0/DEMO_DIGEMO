@@ -1,0 +1,358 @@
+/* ============================================================
+   DiGemo Emotion Studio — Utterance table
+   ============================================================ */
+
+/* --- Toolbar: Edit / Filter / Export --- */
+.table-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-3);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--sp-3);
+  margin-bottom: var(--sp-3);
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.toolbar-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  align-items: center;
+  min-width: 0;
+}
+
+.toolbar-group.filters {
+  flex: 1 1 360px;
+}
+
+.toolbar-group.filters select {
+  width: auto;
+  min-width: 130px;
+  flex: 0 1 160px;
+  padding: 7px var(--sp-3);
+  font-size: var(--text-xs);
+}
+
+.toolbar-group.filters input[type="search"] {
+  flex: 1 1 180px;
+  min-width: 140px;
+  padding: 7px var(--sp-3);
+  font-size: var(--text-xs);
+}
+
+.filter-info {
+  font-size: var(--text-xs);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.head-actions {
+  display: flex;
+  gap: var(--sp-2);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.head-actions.end {
+  justify-content: flex-end;
+  margin-top: var(--sp-4);
+}
+
+.stale-note {
+  margin-top: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background: var(--warning-bg);
+  border: 1px solid #FDE68A;
+  color: var(--warning);
+  font-size: var(--text-xs);
+  line-height: 1.55;
+}
+
+/* --- Table --- */
+.table-wrap {
+  overflow-x: auto;
+  margin-top: var(--sp-3);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+}
+
+.utt-table {
+  --cols: 44px 140px 84px 84px minmax(280px, 1fr) 190px 40px 40px;
+  min-width: 960px;
+}
+
+.utt-table.meld {
+  --cols: 44px 130px 80px 80px minmax(260px, 1fr) 170px 120px 40px 40px;
+  min-width: 1100px;
+}
+
+.utt-row {
+  display: grid;
+  grid-template-columns: var(--cols);
+  gap: var(--sp-3);
+  align-items: start;
+  padding: var(--sp-3);
+  border-top: 1px solid var(--border);
+  background: var(--card);
+  transition: background var(--dur-fast);
+}
+
+.utt-row:hover {
+  background: var(--surface-1);
+}
+
+.utt-row.head {
+  border-top: 0;
+  align-items: center;
+  padding-top: var(--sp-2);
+  padding-bottom: var(--sp-2);
+  background: var(--surface-1);
+  color: var(--muted);
+  font-size: var(--text-2xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.utt-row.head:hover {
+  background: var(--surface-1);
+}
+
+/* Cells */
+.utt-row input,
+.utt-row textarea {
+  width: 100%;
+  min-width: 0;
+  border-radius: var(--r-sm);
+  padding: 7px var(--sp-2);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+}
+
+.utt-row textarea {
+  resize: none;
+  overflow: hidden;
+  min-height: 34px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.utt-row .num {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+  color: var(--sub);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.utt-row .cell-text {
+  font-size: var(--text-sm);
+  line-height: 1.55;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+  padding: 5px 0;
+  min-width: 0;
+}
+
+.utt-row .cell-text.speaker {
+  font-weight: 600;
+}
+
+.utt-row .cell-text.time {
+  font-variant-numeric: tabular-nums;
+  color: var(--sub);
+  font-size: var(--text-xs);
+}
+
+.utt-row .cell-text.transcript {
+  white-space: pre-wrap;
+}
+
+.utt-row .mini {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--border-2);
+  background: var(--card);
+  color: var(--sub);
+  border-radius: var(--r-sm);
+  transition: background var(--dur-fast), color var(--dur-fast), border-color var(--dur-fast);
+}
+
+.utt-row .mini:hover {
+  background: var(--primary-soft);
+  color: var(--primary);
+  border-color: var(--primary);
+}
+
+.utt-row .mini.del:hover {
+  background: var(--error-bg);
+  color: var(--error);
+  border-color: #FECACA;
+}
+
+.utt-row .mini .icon {
+  width: 15px;
+  height: 15px;
+}
+
+/* Result cell */
+.utt-row .res {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: var(--text-xs);
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.utt-row .res .conf {
+  font-weight: 700;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-size: var(--text-xs);
+}
+
+.utt-row .res small {
+  color: var(--muted);
+  font-size: var(--text-2xs);
+  line-height: 1.4;
+}
+
+.utt-row .res .empty-res {
+  color: var(--dim);
+}
+
+.utt-row .res .stale-badge {
+  width: fit-content;
+  font-size: var(--text-2xs);
+  font-weight: 600;
+  color: var(--warning);
+  background: var(--warning-bg);
+  border-radius: var(--r-full);
+  padding: 2px 8px;
+}
+
+.utt-row .res.is-stale .emotion-chip,
+.utt-row .res.is-stale .conf {
+  opacity: 0.55;
+}
+
+/* Right / wrong / playing */
+.utt-row.right {
+  box-shadow: inset 3px 0 0 var(--success);
+}
+
+.utt-row.wrong {
+  box-shadow: inset 3px 0 0 var(--error);
+  background: #FFF8F8;
+}
+
+.utt-row .verdict {
+  font-weight: 700;
+  font-size: var(--text-2xs);
+}
+
+.utt-row.right .verdict {
+  color: var(--success);
+}
+
+.utt-row.wrong .verdict {
+  color: var(--error);
+}
+
+.utt-row.playing {
+  background: var(--primary-soft);
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+/* Overlap indicators (from backend segmentation) */
+.utt-row.overlap .num {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.utt-row.overlap {
+  box-shadow: inset 3px 0 0 #F59E0B;
+}
+
+.utt-row.overlap.added {
+  box-shadow: inset 3px 0 0 var(--primary);
+  background: var(--primary-soft);
+}
+
+.table-empty {
+  padding: var(--sp-8) var(--sp-4);
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--text-sm);
+}
+
+/* Summary pills */
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+  margin-top: var(--sp-3);
+}
+
+.summary .pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px var(--sp-3);
+  border-radius: var(--r-full);
+  font-size: var(--text-xs);
+  font-weight: 500;
+  background: var(--c-bg, var(--surface-2));
+  color: var(--c-ink, var(--sub));
+}
+
+.summary .pill[class*="emo-"]::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--c);
+}
+
+.summary .pill.good {
+  background: var(--success-bg);
+  color: var(--success);
+  font-weight: 600;
+}
+
+@media (max-width: 860px) {
+  .utt-table {
+    min-width: 880px;
+  }
+
+  .table-toolbar {
+    padding: var(--sp-2);
+  }
+}
+
+@media (max-width: 540px) {
+  .toolbar-group {
+    width: 100%;
+  }
+
+  .toolbar-group.filters select,
+  .toolbar-group.filters input[type="search"] {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+
+  .head-actions .btn {
+    flex: 1 1 auto;
+  }
+}

@@ -1,207 +1,205 @@
-# DiGemo — Multimodal Emotion Recognition (MELD Demo)
+# DiGemo — Nhận diện cảm xúc hội thoại đa phương thức (MELD Demo)
 
-Demo nhận diện cảm xúc trong hội thoại từ **3 phương thức: văn bản (Text), âm thanh (Audio) và hình ảnh (Visual)** bằng mô hình **DiGemo**, sử dụng checkpoint huấn luyện trên bộ dữ liệu **MELD**.
+Demo nhận diện cảm xúc từng câu thoại trong video hội thoại bằng mô hình **DiGemo**, kết hợp **3 phương thức: văn bản (Text), âm thanh (Audio) và hình ảnh (Visual)**. Checkpoint được huấn luyện trên bộ dữ liệu **MELD**.
 
-Dự án có hai cách chạy:
+- **Ngôn ngữ đầu vào:** tiếng Anh.
+- **7 nhãn cảm xúc:** `neutral`, `surprise`, `fear`, `sadness`, `joy`, `disgust`, `anger`.
 
-- **Web demo:** thao tác trong trình duyệt, luân phiên **Speaker A / Speaker B** (nếu sử dụng đúng bản web đã cấu hình hai speaker).
-- **Terminal demo (`live_erc.py`):** thu âm trực tiếp từ microphone và hình ảnh từ webcam, sau đó dự đoán cảm xúc từng lượt nói.
+## 1. Tính năng
 
-> **Ngôn ngữ đầu vào:** tiếng Anh. Kết quả thuộc 7 nhãn cảm xúc: `neutral`, `surprise`, `fear`, `sadness`, `joy`, `disgust`, `anger`.
->
-> **Quan trọng:** Repository **không kèm trọng số/checkpoint lớn**. Hãy tải các tệp cần thiết từ Google Drive theo mục [Tải checkpoint & pretrained assets](#3-tải-checkpoint--pretrained-assets).
+Giao diện web **DiGemo Emotion Studio** (`/video`) xử lý cả đoạn hội thoại trong một lần:
 
-## 1. Yêu cầu
+1. Tải video lên (mp4, avi, mov, mkv, webm, m4v).
+2. Hệ thống tách âm thanh (FFmpeg), nhận dạng lời nói (Whisper), phân biệt người nói (pyannote) và gộp thành các câu thoại.
+3. Bạn kiểm tra và chỉnh sửa bảng câu thoại (transcript, người nói, thời gian).
+4. Với mỗi câu, hệ thống trích đặc trưng Text (RoBERTa), Audio (Wav2Vec2) và Visual (DenseNet FER+ trên khuôn mặt người đang nói, xác định bằng chuyển động môi qua MediaPipe).
+5. DiGemo dự đoán cảm xúc cho toàn bộ hội thoại, hiển thị xác suất từng nhãn và cho tải kết quả CSV.
 
-- **Windows 10/11**, sử dụng **PowerShell**.
-- **Python 3.9** (phù hợp với hướng dẫn triển khai demo hiện có).
-- Camera và microphone hoạt động; cấp quyền sử dụng cho ứng dụng/trình duyệt.
-- Kết nối Internet trong lần chạy đầu để tải backbone pretrained từ Hugging Face / torchvision nếu chưa có trong cache.
-- **FFmpeg** nằm trong `PATH` nếu chạy bản **Web demo** (giải mã âm thanh nhận từ trình duyệt).
-- **CPU** có thể chạy, nhưng suy luận có thể chậm; GPU NVIDIA giúp tăng tốc các encoder khi cấu hình PyTorch CUDA phù hợp.
+Ngoài chế độ tự động, còn hai chế độ nhập bảng câu thoại:
+
+- **Chế độ MELD:** chọn `Dialogue_ID` trong `test_sent_emo.csv` để lấy transcript, người nói và nhãn gốc (có tính độ chính xác).
+- **Tải CSV riêng:** CSV có cột `StartTime`, `EndTime` và tùy chọn `Speaker`, `Utterance`, `Dialogue_ID`, `Emotion`.
+
+**Giới hạn mặc định:** video tối đa 800 MB và 10 phút, tối đa 300 câu thoại mỗi lần.
 
 ## 2. Cấu trúc dự án
 
-Ví dụ bố trí các tệp tại **thư mục gốc của repository**:
-
 ```text
-DiGemo-Demo/
-├── checkpoints/
-│   └── best_model_MELD_9161.pth       # TẢI TỪ GOOGLE DRIVE
-├── digemo_web/                       # Giao diện web và backend
-│   └── app.py                        # Kiểm tra tên/đường dẫn thực tế trong repo
-├── MELD_pro/
-│   └── features/
-│       ├── roberta_meld_ft.pt        # TẢI TỪ GOOGLE DRIVE
-│       ├── online_audio_transform.joblib    # TẢI TỪ GOOGLE DRIVE
-│       └── online_visual_transform.joblib   # TẢI TỪ GOOGLE DRIVE
-├── live_erc.py                       # Demo qua terminal (nếu sử dụng)
-├── predict.py
-├── model.py
-├── module.py
-├── utils.py
-├── recover_feature_transforms.py    # Tiện ích khôi phục transforms (không cần chạy thường xuyên)
-└── README.md
+demo_meld/
+├── README.md
+├── requirements.txt
+├── start_web.ps1                  # chạy nhanh web
+├── checkpoints/                   # trọng số (không đưa lên git)
+│   ├── digemo_meld.pth            # DiGemo (MELD)
+│   ├── text_ft.pt                 # RoBERTa-base đã fine-tune
+│   └── face_fer.pt                # DenseNet FER+
+├── data/
+│   ├── utterance_timestamps.csv   # mốc thời gian video MELD đã gộp
+│   ├── csv/                       # train/dev/test_sent_emo.csv
+│   └── feats/                     # đặc trưng + chuẩn hóa (*.pkl, *.npz, *.json)
+├── digemo/
+│   ├── model/                     # model.py, module.py, utils.py
+│   ├── encoders/                  # encoders.py, encoders_online.py, common.py, densenet_fer.py
+│   ├── pipeline/                  # video_pipeline.py, diarizer.py, overlap_*.py,
+│   │                              # predict.py, infer.py, live_erc.py
+│   └── web/
+│       ├── app.py                 # entrypoint FastAPI
+│       └── static/                # video.html, video.js, css/
+├── scripts/                       # chạy một lần để chuẩn bị dữ liệu/huấn luyện
+│   ├── build_features.py
+│   ├── extract_face_embed.py
+│   ├── text_finetune.py
+│   └── merge_meld_video.py
+└── docs/
+    └── digemo_flow.md             # mô tả luồng xử lý
 ```
 
-**Lưu ý khi đưa file lên GitHub:**
+`app.py` tự thêm `digemo/model`, `digemo/encoders`, `digemo/pipeline` vào `sys.path`, nên các module import với nhau theo tên phẳng (`from predict import ...`). Không cần `pip install -e .`.
 
-- Nếu file bạn tải lên đang mang tên `model(1).py`, hãy đổi thành **`model.py`** vì `predict.py` dùng `from model import DiGemo`.
-- Ảnh cấu trúc thư mục hiện có là `digemo_web/`, còn tài liệu hướng dẫn cũ ghi `digemo_web_v2/app.py`. **Dùng tên thư mục và đường dẫn `app.py` đúng với phiên bản thực tế của bạn**; tệp `app.py` chưa được cung cấp để đối chiếu.
-- Các file Python dùng chung (`predict.py`, `model.py`, `module.py`, `utils.py`) phải nằm ở vị trí mà Python import được, ví dụ cùng cấp với `live_erc.py`.
+## 3. Yêu cầu
 
-## 3. Tải checkpoint & pretrained assets
+- **Windows 10/11**, PowerShell.
+- **Python 3.10** (môi trường đã chạy thử; 3.9 cũng có thể dùng nếu cài đủ thư viện).
+- **FFmpeg** nằm trong `PATH` (kiểm tra bằng `ffmpeg -version`).
+- GPU NVIDIA giúp tăng tốc rõ rệt (Whisper, Wav2Vec2, pyannote); CPU vẫn chạy nhưng chậm.
+- Internet ở lần chạy đầu để tải model từ Hugging Face (Whisper `large-v3`, `facebook/wav2vec2-base`, `roberta-base`, pyannote, speechbrain) nếu chưa có trong cache.
 
-Vì dung lượng lớn hoặc cần giữ đúng bộ tham số đã huấn luyện, **checkpoint và các file feature transform không được đóng gói trực tiếp trong repository**.
+## 4. Tải checkpoint và dữ liệu
 
-[Google Drive:](https://drive.google.com/file/d/1KiGVb6jZPwFJaysvie8EHoAzn0hM15YJ/view?usp=drive_link)
+Repository không kèm trọng số lớn. Tải từ Google Drive: [liên kết tải](https://drive.google.com/file/d/1KiGVb6jZPwFJaysvie8EHoAzn0hM15YJ/view?usp=drive_link) và đặt đúng chỗ:
 
-Sau khi tải, giải nén hoặc chép từng tệp theo bảng bên dưới:
-
-| Tên tệp | Nơi đặt trong repo | Công dụng |
+| Tệp | Vị trí | Công dụng |
 | --- | --- | --- |
-| `best_model_MELD_9161.pth` | `checkpoints/best_model_MELD_9161.pth` | Checkpoint chính của DiGemo trên MELD. |
-| `roberta_meld_ft.pt` | `MELD_pro/features/roberta_meld_ft.pt` | Trọng số RoBERTa-large đã fine-tune để trích xuất đặc trưng văn bản. |
-| `online_audio_transform.joblib` | `MELD_pro/features/online_audio_transform.joblib` | Biến đổi đặc trưng audio về 300 chiều, khớp với checkpoint. |
-| `online_visual_transform.joblib` | `MELD_pro/features/online_visual_transform.joblib` | Biến đổi đặc trưng visual về 342 chiều, khớp với checkpoint. |
+| `digemo_meld.pth` | `checkpoints/` | Checkpoint chính DiGemo (MELD, đặc trưng 1024/342/300, 9 speaker slots). |
+| `text_ft.pt` | `checkpoints/` | RoBERTa-base đã fine-tune cho đặc trưng văn bản. |
+| `face_fer.pt` | `checkpoints/` | DenseNet FER+ cho đặc trưng khuôn mặt. |
+| `audio_head.npz`, `norm.npz`, `speaker_map.json` | `data/feats/` | Đầu chiếu audio 768→300, chuẩn hóa visual và ánh xạ người nói. **Bắt buộc**, phải cùng pipeline với checkpoint. |
+| `test_sent_emo.csv` | `data/csv/` | Dùng cho chế độ MELD. |
+| `utterance_timestamps.csv` | `data/` | Mốc thời gian thật của video MELD đã gộp (tạo bởi `scripts/merge_meld_video.py`). |
 
-Hai tệp `.joblib` **phải thuộc cùng pipeline đặc trưng với checkpoint**, không thay thế tùy ý bằng PCA/Scaler mới. Các file dữ liệu thô `.npy`, video hoặc toàn bộ MELD không bắt buộc chỉ để chạy inference nếu đã có đúng bốn tệp bên trên.
+Các tệp `*.pkl` trong `data/feats/` chỉ cần khi huấn luyện lại hoặc dùng `scripts/`; chạy web chỉ cần các tệp bắt buộc ở trên.
 
-Các backbone thường được tải tự động khi chạy `live_erc.py`, nếu chưa cache:
-
-- Text: `roberta-large` (tokenizer/config; trọng số encoder fine-tune lấy từ `roberta_meld_ft.pt`).
-- Audio: `facebook/wav2vec2-base-960h`.
-- Visual: `DenseNet121` với weights `IMAGENET1K_V1`.
-- Speech-to-text: `faster-whisper` với model `base.en` (có thể dùng `tiny.en` để nhẹ hơn).
-
-### Kiểm tra đã đặt đủ file chưa
-
-Mở PowerShell tại thư mục gốc và chạy:
+Kiểm tra đã đủ tệp chưa (tại thư mục gốc):
 
 ```powershell
 @(
-  ".\checkpoints\best_model_MELD_9161.pth",
-  ".\MELD_pro\features\roberta_meld_ft.pt",
-  ".\MELD_pro\features\online_audio_transform.joblib",
-  ".\MELD_pro\features\online_visual_transform.joblib"
+  ".\checkpoints\digemo_meld.pth",
+  ".\checkpoints\text_ft.pt",
+  ".\checkpoints\face_fer.pt",
+  ".\data\feats\audio_head.npz",
+  ".\data\feats\norm.npz",
+  ".\data\feats\speaker_map.json"
 ) | ForEach-Object { "$(Test-Path $_)  $_" }
 ```
 
-Nếu dòng nào hiện `False`, hãy kiểm tra lại đường dẫn và tên file sau khi tải từ Drive.
-
-## 4. Cài đặt môi trường
-
-Chạy lệnh tại **thư mục gốc** của dự án.
-
-### 4.1. Tạo môi trường ảo
+## 5. Cài đặt môi trường
 
 ```powershell
-py -3.9 -m venv .venv
+py -3.10 -m venv .venv
 .\.venv\Scripts\Activate.ps1
 python -m pip install --upgrade pip
 ```
 
-Nếu PowerShell chặn lệnh `Activate.ps1`, có thể chạy riêng trong phiên PowerShell hiện tại:
+Nếu PowerShell chặn `Activate.ps1`:
 
 ```powershell
 Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
 ```
 
-### 4.2. Cài PyTorch
-
-**Chạy trên CPU:**
+Cài PyTorch (chọn một):
 
 ```powershell
-python -m pip install torch==2.1.2 torchvision==0.16.2 --index-url https://download.pytorch.org/whl/cpu
+# CPU
+python -m pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# GPU: chọn lệnh phù hợp CUDA tại https://pytorch.org/get-started/locally/
 ```
 
-**Chạy trên GPU NVIDIA:** cài cặp `torch` / `torchvision` tương thích với driver và CUDA trên máy, thay cho lệnh CPU phía trên. Tham khảo [PyTorch — Previous Versions](https://pytorch.org/get-started/previous-versions/) để chọn đúng lệnh cài.
-
-### 4.3. Cài thư viện khác
-
-Các lệnh sau là **bộ phiên bản tham khảo nhất quán cho demo**, không phải bản `pip freeze` được xác nhận từ máy train checkpoint:
+Cài các thư viện còn lại:
 
 ```powershell
-python -m pip install numpy==1.26.4 scipy==1.11.4 pandas==1.5.3 scikit-learn==1.6.1 joblib
-python -m pip install transformers==4.41.2 Pillow opencv-python==4.10.0.84 faster-whisper sounddevice
-python -m pip install fastapi uvicorn python-multipart
+python -m pip install -r requirements.txt
 ```
 
-**Không cài nguyên trạng file `requirements(1).txt` đã gửi kèm:** tệp đó vừa chứa `torch==2.0.0` vừa hướng dẫn dùng PyTorch `2.1.2`, và lặp lại một số khai báo phụ thuộc. Khi chuẩn bị một file `requirements_demo_meld.txt` chính thức, hãy bỏ dòng `torch==2.0.0`, giữ cặp `torch`/`torchvision` nhất quán, và ưu tiên dùng phiên bản `scikit-learn` đã tạo các file `.joblib`.
+Các thư viện chính mà web sử dụng: `fastapi`, `uvicorn`, `python-multipart`, `transformers`, `faster-whisper`, `pyannote.audio`, `speechbrain`, `mediapipe`, `opencv-python`, `scikit-learn`, `numpy`, `Pillow`.
 
-**Kiểm tra FFmpeg (bắt buộc với bản web theo hướng dẫn gốc):**
+> Phiên bản cụ thể nên lấy từ `pip freeze` của môi trường đã chạy được, để cập nhật vào `requirements.txt`.
+
+## 6. Chạy web
+
+Tại thư mục gốc, sau khi kích hoạt `.venv`:
 
 ```powershell
-ffmpeg -version
+python digemo\web\app.py --host 127.0.0.1 --port 8000
 ```
 
-Nếu chưa nhận diện được `ffmpeg`, hãy cài FFmpeg rồi thêm thư mục chứa `ffmpeg.exe` vào biến môi trường `PATH`.
+Hoặc dùng `.\start_web.ps1`. Chờ thông báo `[web] Ready!`, rồi mở **http://127.0.0.1:8000** (tự chuyển tới `/video`).
 
-## 5. Chạy Web demo
+Tất cả tham số đều có giá trị mặc định theo cấu trúc trên:
 
-> Lệnh mẫu bên dưới dựa trên tài liệu triển khai **MELD V2 web** và cấu trúc thư mục trong ảnh (`digemo_web/`). **Chưa thể xác nhận chính xác entrypoint hoặc toàn bộ tham số** do chưa có mã nguồn `digemo_web/app.py` trong tệp đính kèm.
-
-Nếu trong repo có file `digemo_web/app.py`, thử chạy:
-
-```powershell
-python .\digemo_web\app.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --speaker-a-index 0 --speaker-b-index 1 --window 10 --host 127.0.0.1 --port 8001
-```
-
-Nếu đường dẫn khác, hãy sửa `digemo_web\app.py` thành vị trí thật của `app.py`; có thể tìm bằng:
-
-```powershell
-Get-ChildItem .\digemo_web -Filter app.py -Recurse
-```
-
-Khi backend khởi động thành công, mở trình duyệt trên **cùng máy**:
-
-**http://127.0.0.1:8001**
-
-Cấp quyền microphone/camera, chọn Speaker A/B, ghi từng lượt nói bằng **tiếng Anh** và xem cảm xúc dự đoán.
-
-## 6. Chạy trực tiếp bằng terminal (`live_erc.py`)
-
-Đây là cách chạy được đối chiếu từ mã nguồn `live_erc.py` đã cung cấp. Đảm bảo các file Python như sơ đồ ở mục 2 và checkpoint ở mục 3 đã sẵn sàng.
-
-```powershell
-python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --torch-device auto --window 10
-```
-
-**Cách dùng:**
-
-- Nhấn **Enter** để bắt đầu ghi một lượt nói; nhấn **Space** trong cửa sổ webcam để kết thúc sớm (mặc định tối đa 7 giây).
-- Sau khi ghi, chương trình chạy ASR, trích xuất text/audio/visual và hiển thị cảm xúc dự đoán cùng các xác suất nổi bật.
-- Nhập `r` rồi Enter để xóa lịch sử hội thoại; nhập `q` rồi Enter để thoát.
-- Bản terminal mặc định gán người nói vào `speaker-index 8` (nhóm `Other` của MELD), **khác với giao diện A/B của bản web**.
-
-Nếu muốn nhập bản ghi lời nói thủ công (không chạy Whisper):
-
-```powershell
-python .\live_erc.py --checkpoint ".\checkpoints\best_model_MELD_9161.pth" --features-dir ".\MELD_pro\features" --manual-transcript
-```
-
-Nếu microphone/camera không đúng thiết bị:
-
-```powershell
-python .\live_erc.py --list-mics
-```
-
-Sau đó thêm `--mic-index <SỐ>` và/hoặc `--camera-index <SỐ>` vào lệnh chạy. Có thể thêm `--torch-device cpu` khi máy không dùng được CUDA.
-
-## 7. Lỗi thường gặp
-
-| Hiện tượng | Cách kiểm tra |
+| Tham số | Mặc định |
 | --- | --- |
-| `FileNotFoundError: Missing ...` | Kiểm tra 4 tệp cần tải từ Drive ở mục 3 và đường dẫn `--features-dir`. |
-| `No module named 'model'` | Đổi `model(1).py` thành `model.py` và đặt đúng vị trí Python có thể import. |
-| `ModuleNotFoundError` | Đảm bảo đã kích hoạt `.venv` và cài đầy đủ thư viện. |
-| `CUDA not available` | Chạy bằng `--torch-device cpu` (terminal) hoặc cài lại PyTorch CUDA phù hợp. |
-| Sai số chiều đặc trưng hoặc PCA/Scaler | Kiểm tra checkpoint, `.joblib` và các encoder có thuộc cùng pipeline train không. |
-| Không mở được webcam/microphone | Kiểm tra quyền thiết bị của Windows, đóng ứng dụng đang dùng camera, chọn đúng index. |
-| Không nhận lệnh `ffmpeg` | Cài FFmpeg và cập nhật `PATH` trước khi chạy web. |
-| `app.py` không tồn tại hoặc báo `unrecognized arguments` | Kiểm tra đúng backend web và tham số của phiên bản thực tế; mã nguồn web chưa được đối chiếu. |
+| `--checkpoint` | `checkpoints/digemo_meld.pth` |
+| `--encoder-dir` | `digemo/encoders` |
+| `--feat-dir` | `data/feats` |
+| `--text-ckpt` | `checkpoints/text_ft.pt` |
+| `--face-ckpt` | `checkpoints/face_fer.pt` |
+| `--meld-csv` | `data/csv/test_sent_emo.csv` |
+| `--meld-timestamps` | `data/utterance_timestamps.csv` |
+| `--torch-device` | `auto` (`cuda` nếu có, không thì `cpu`) |
+| `--whisper-model` | `large-v3` (đổi sang `medium`/`small` nếu thiếu VRAM) |
+| `--host`, `--port` | `127.0.0.1`, `8000` |
+
+### Biến môi trường tùy chọn
 
 
-lenh set: $env:DIGEMO_OVERLAP_ASR = "1" 
-python E:\Do_an\DEMO\demo_meld\digemo_web\app.py --host 0.0.0.0   
+| Biến | Tác dụng |
+| --- | --- |
+| `DIGEMO_MELD_CSV`, `DIGEMO_MELD_TS` | Ghi đè đường dẫn CSV MELD và file mốc thời gian (thường do `--meld-csv`, `--meld-timestamps` tự đặt). |
+
+### Truy cập từ máy khác trong mạng
+
+```powershell
+python digemo\web\app.py --host 0.0.0.0
+```
+
+Server **không có đăng nhập**, chỉ nên dùng trong mạng tin cậy.
+
+## 7. Sử dụng
+
+1. Mở `/video`, chọn video (hoặc chọn một `Dialogue_ID` MELD cùng video tương ứng).
+2. Chọn số người nói nếu để hệ thống tự phân biệt.
+3. Bấm phân tích, chờ bảng câu thoại xuất hiện. Kiểm tra bằng nút phát, sửa transcript, người nói hoặc thời gian nếu cần. Các dòng có dấu ⚠ là vùng nói chồng, độ tin cậy thấp hơn.
+4. Gán slot người nói (Joey, Ross,... theo `speaker_map.json`; người lạ vào nhóm `Other`).
+5. Bấm dự đoán để xem cảm xúc, xác suất từng nhãn, thống kê và tải CSV kết quả.
+
+## 8. Chuẩn bị dữ liệu / huấn luyện lại (tùy chọn)
+
+Các script trong `scripts/` chỉ dùng khi tạo lại đặc trưng hoặc fine-tune encoder. Xem tham số bằng `--help`, ví dụ:
+
+```powershell
+python scripts\build_features.py --help
+```
+
+| Script | Việc làm |
+| --- | --- |
+| `extract_face_embed.py` | Trích embedding khuôn mặt (342 chiều). |
+| `build_features.py` | Dựng bộ đặc trưng text/audio/visual vào `data/feats/`. |
+| `text_finetune.py` | Fine-tune RoBERTa cho đặc trưng văn bản. |
+| `merge_meld_video.py` | Gộp video MELD theo dialogue và tạo `utterance_timestamps.csv`. |
+
+`digemo/pipeline/live_erc.py` là bản demo thu âm/webcam trực tiếp từ giai đoạn trước; nó chưa được cập nhật và chưa kiểm chứng với cấu trúc mới.
+
+## 9. Lỗi thường gặp
+
+| Hiện tượng | Cách xử lý |
+| --- | --- |
+| `Thiếu file bắt buộc: ...` khi khởi động | Kiểm tra các tệp ở mục 4 và đường dẫn tham số. |
+| `ModuleNotFoundError` | Kích hoạt `.venv` và cài lại `requirements.txt`; chạy từ thư mục gốc bằng `python digemo\web\app.py`. |
+| `Không tìm thấy test_sent_emo.csv` / thiếu mốc thời gian | Đặt file vào `data/csv/` và `data/`, hoặc dùng `--meld-csv`, `--meld-timestamps`. |
+| `Không tìm thấy ffmpeg` | Cài FFmpeg và thêm vào `PATH`. |
+| `CUDA not available` | Chạy với `--torch-device cpu` hoặc cài lại PyTorch bản CUDA. |
+| Hết VRAM khi load Whisper | Dùng `--whisper-model medium` hoặc `small`. App tự lùi về CPU nếu GPU không dùng được. |
+| Cảnh báo `torchcodec ... WinError 127` | Vô hại, pipeline truyền audio trong bộ nhớ. Có thể bỏ qua hoặc `pip uninstall torchcodec`. |
+| Cảnh báo pyannote/độ chính xác người nói thấp | pyannote không chạy được nên đã lùi về gom cụm Wav2Vec2; kiểm tra cài đặt/quyền tải model pyannote và cột Speaker. |
+| Video "không có luồng hình/âm thanh" | Video cần có cả hình và tiếng, dài tối đa 10 phút. |
+| Sai số chiều đặc trưng | Checkpoint, `norm.npz`, `audio_head.npz` và các encoder phải cùng pipeline huấn luyện (1024 / 342 / 300). |
