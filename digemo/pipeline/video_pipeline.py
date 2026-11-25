@@ -21,7 +21,7 @@ import threading
 import time
 from pathlib import Path
 from typing import Callable, Dict, List, Optional, Tuple
-from diarizer import diarize_full, rows_from_diarization, DiarizerUnavailable
+from diarizer import diarize_full, rows_from_segments, DiarizerUnavailable
 from overlap_asr import add_overlap_rows
 from encoders_online import SpeakerFaceCropper
 import numpy as np
@@ -31,7 +31,7 @@ from pydantic import BaseModel
 
 LOG = logging.getLogger('digemo.video')
 HERE = Path(__file__).resolve().parent
-ROOT = HERE.parents[1]                          # E:\Do_an\DEMO\demo_meld
+ROOT = HERE.parents[1]                         
 STATIC = ROOT / 'digemo' / 'web' / 'static'
 
 MAX_VIDEO_BYTES = 800 * 1024 * 1024
@@ -46,7 +46,7 @@ VIDEO_TTL_SECONDS = 2 * 3600
 SAMPLE_RATE = 16000
 EXPECTED_DIMS = {'text': 1024, 'audio': 300, 'visual': 342}
 ALLOWED_SUFFIXES = {'.mp4', '.avi', '.mov', '.mkv', '.webm', '.m4v'}
-ASR_LANGUAGE = 'en'   # checkpoint MELD chỉ dành cho tiếng Anh; đổi thành None để Whisper tự nhận diện
+ASR_LANGUAGE = 'en'   
 # Đặt DIGEMO_STRICT_DIARIZATION=1 để báo lỗi thay vì lùi về gom cụm Wav2Vec2 khi pyannote không chạy được.
 import os as _os
 STRICT_DIARIZATION = _os.environ.get('DIGEMO_STRICT_DIARIZATION', '') == '1'
@@ -447,12 +447,13 @@ class EngineAdapter:
         self.ns = engine.ns
         self.lock = engine.lock
 
-    def transcribe_words(self, wav, on_progress: Optional[Callable[[float], None]] = None):
-        # VAD nhạy hơn mặc định (ngưỡng thấp, đệm rộng) để không cắt mất tiếng nói nhỏ / câu chen ngang.
+    def transcribe_words(self, wav, on_progress=None, vad: bool = True):
+        kw = {'vad_filter': vad}
+        if vad:
+            kw['vad_parameters'] = {'threshold': 0.3, 'min_silence_duration_ms': 300, 'speech_pad_ms': 300}
         segments, _ = self.e.asr.transcribe(
-            wav, language=ASR_LANGUAGE, beam_size=3, vad_filter=True,
-            vad_parameters={'threshold': 0.3, 'min_silence_duration_ms': 300, 'speech_pad_ms': 300},
-            word_timestamps=True, condition_on_previous_text=False)
+            wav, language=ASR_LANGUAGE, beam_size=3, word_timestamps=True,
+            condition_on_previous_text=False, **kw)
         total, words = max(len(wav) / SAMPLE_RATE, 1e-6), []
         for seg in segments:
             if seg.words:
@@ -640,58 +641,43 @@ class VideoService:
                     words = ad.transcribe_words(slice_audio(wav, r['start'], r['end']))
                 r['text'] = ' '.join(w[2] for w in words).strip()
             source = 'csv'
-        # else:
-        #     job.set(0.1, 'Whisper đang nhận dạng giọng nói…')
-        #     with ad.lock:
-        #         words = ad.transcribe_words(wav, lambda f: job.set(0.1 + 0.5 * f))
-        #     utts = build_utterances(words)
-        #     if not utts:
-        #         raise ValueError('Không nhận được lời nói nào trong video.')
-        #     utts = utts[:MAX_UTTERANCES]
-        #     embeds = []
-        #     with ad.lock:
-        #         for k, u in enumerate(utts):
-        #             job.set(0.62 + 0.33 * k / len(utts), f'Phân biệt người nói ({k + 1}/{len(utts)})…')
-        #             embeds.append(ad.speaker_embedding(slice_audio(wav, u['start'], u['end'])))
-        #     labels = cluster_speakers(np.stack(embeds), n_speakers)
-        #     rows = [{'start': u['start'], 'end': u['end'], 'text': u['text'],
-        #              'speaker': f'Speaker {l + 1}', 'dialogue_id': None, 'truth': None}
-        #             for u, l in zip(utts, labels)]
         else:
-            job.set(0.1, 'Whisper đang nhận dạng giọng nói…')
-            with ad.lock:
-                words = ad.transcribe_words(wav, lambda f: job.set(0.1 + 0.5 * f))
-            if not words:
-                raise ValueError('Không nhận được lời nói nào trong video.')
-            rows = None
+            rows, source = None, 'auto'
             try:
-                job.set(0.62, 'pyannote đang phân biệt người nói…')
-                # rec['wav'] là audio.npy đã lưu ở trên. exclusive -> gán từ; full -> đánh dấu đoạn nói chồng.
+                job.set(0.1, 'pyannote đang phân biệt người nói…')
                 segs, segs_full = diarize_full(rec['wav'], n_speakers)
+                if not segs:
+                    raise DiarizerUnavailable('pyannote không tìm thấy đoạn nói nào.')
                 dstats = {}
-                rows = rows_from_diarization(words, segs, build_utterances,
-                                             overlap_segs=segs_full, stats=dstats)[:MAX_UTTERANCES]
+                with ad.lock:
+                    rows = rows_from_segments(
+                        wav, segs, lambda x: ad.transcribe_words(x, vad=False), build_utterances,
+                        overlap_segs=segs_full, stats=dstats,
+                        on_progress=lambda f: job.set(0.25 + 0.65 * f, 'Whisper nhận dạng từng đoạn…'))
+                rows = rows[:MAX_UTTERANCES]
+                if not rows:
+                    raise ValueError('Không nhận được lời nói nào trong video.')
                 source = 'pyannote'
-                if OVERLAP_ASR and rows and segs_full:
+                if OVERLAP_ASR and segs_full:
                     with ad.lock:
                         rows = apply_overlap_asr(ad, wav, rows, segs, segs_full, dstats, notes, job)
-                if dstats.get('dropped_words'):
-                    notes.append(f'{dstats["dropped_words"]} từ nằm ngoài vùng có người nói (nghi Whisper nghe nhầm '
-                                 f'trong im lặng) đã bị bỏ: {", ".join(dstats["dropped_sample"])}')
+                if dstats.get('empty_segments'):
+                    notes.append(f'{dstats["empty_segments"]} đoạn pyannote không nhận ra chữ nên bị bỏ (thường là tiếng thở, ồn).')
                 if dstats.get('overlap_utterances'):
-                    notes.append(f'{dstats["overlap_utterances"]} câu có người nói chồng nhau '
-                                 '(đánh dấu ⚠ trong bảng), người nói/cảm xúc ở các câu này kém tin cậy hơn.')
+                    notes.append(f'{dstats["overlap_utterances"]} câu có người nói chồng nhau (đánh dấu ⚠), '
+                                 'chữ và cảm xúc ở các câu này kém tin cậy hơn.')
             except DiarizerUnavailable as exc:
                 if STRICT_DIARIZATION:
                     raise ValueError(f'pyannote không chạy được: {exc}') from exc
-                LOG.warning('pyannote không dùng được (%s), quay về gom cụm Wav2Vec2', exc)
+                LOG.warning('pyannote không dùng được (%s), quay về Whisper + gom cụm Wav2Vec2', exc)
                 notes.append(f'pyannote không dùng được ({exc}). Đang dùng gom cụm Wav2Vec2, độ chính xác '
                              'người nói THẤP hơn nhiều, hãy kiểm tra lại cột Speaker.')
-            if not rows:
-                utts = build_utterances(words)
+                job.set(0.1, 'Whisper đang nhận dạng giọng nói…')
+                with ad.lock:
+                    words = ad.transcribe_words(wav, lambda f: job.set(0.1 + 0.5 * f))
+                utts = build_utterances(words)[:MAX_UTTERANCES]
                 if not utts:
                     raise ValueError('Không nhận được lời nói nào trong video.')
-                utts = utts[:MAX_UTTERANCES]
                 embeds = []
                 with ad.lock:
                     for k, u in enumerate(utts):
@@ -701,7 +687,6 @@ class VideoService:
                 rows = [{'start': u['start'], 'end': u['end'], 'text': u['text'],
                          'speaker': f'Speaker {l + 1}', 'dialogue_id': None, 'truth': None}
                         for u, l in zip(utts, labels)]
-                source = 'auto'
 
         speakers = list(dict.fromkeys(r['speaker'] for r in rows))
         enc = ad.e.encoders

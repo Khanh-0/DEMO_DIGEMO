@@ -129,7 +129,7 @@ Các thư viện chính mà web sử dụng: `fastapi`, `uvicorn`, `python-multi
 Tại thư mục gốc, sau khi kích hoạt `.venv`:
 
 ```powershell
-python digemo\web\app.py --host 127.0.0.1 --port 8000
+python .\digemo\web\app.py
 ```
 
 Hoặc dùng `.\start_web.ps1`. Chờ thông báo `[web] Ready!`, rồi mở **http://127.0.0.1:8000** (tự chuyển tới `/video`).
