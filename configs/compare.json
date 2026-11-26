@@ -1,0 +1,24 @@
+{
+  "out_dir": "results/compare",
+  "device": "auto",
+  "meld": {
+    "pkl": "data/feats/meld_multi_features.pkl",
+    "key_map": "",
+    "digemo_ckpt": "checkpoints/digemo_meld.pth",
+    "digemo_pred": "",
+    "dmcer_pred": "results/dmcer/meld_pred_test.csv",
+    "dmcer_code_dir": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/MELD",
+    "dmcer_data_root": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/MELD/data_test",
+    "dmcer_ckpt": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/MELD/models/final_best.pt"
+  },
+  "iemocap": {
+    "pkl": "data/feats/iemocap_multi_features.pkl",
+    "key_map": "",
+    "digemo_ckpt": "checkpoints/digemo_iemocap.pth",
+    "digemo_pred": "",
+    "dmcer_pred": "results/dmcer/iemocap_pred_test.tsv",
+    "dmcer_code_dir": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/IEMOCAP",
+    "dmcer_data_root": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/IEMOCAP/data_test",
+    "dmcer_ckpt": "Dynamic-Multimodal-Causal-Graph-Framework-ERC/code/IEMOCAP/models/final_best.pt"
+  }
+}

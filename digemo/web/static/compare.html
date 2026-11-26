@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="vi">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#F4F7FB">
+  <title>DiGemo · So sánh model</title>
+  <link rel="stylesheet" href="/static/css/tokens.css">
+  <link rel="stylesheet" href="/static/css/layout.css">
+  <link rel="stylesheet" href="/static/css/components.css">
+  <link rel="stylesheet" href="/static/css/upload.css">
+  <link rel="stylesheet" href="/static/css/report.css">
+  <link rel="stylesheet" href="/static/css/motion.css">
+  <link rel="stylesheet" href="/static/css/compare.css?v=1">
+</head>
+
+<body>
+  <svg class="svg-defs" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-video" viewBox="0 0 24 24">
+      <rect x="2" y="5" width="15" height="14" rx="3" />
+      <path d="m17 10 5-3v10l-5-3" />
+    </symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24">
+      <path d="M4 20V10M10 20V4M16 20v-7M22 20H2" />
+    </symbol>
+    <symbol id="i-play" viewBox="0 0 24 24">
+      <path d="m8 5 11 7-11 7V5Z" />
+    </symbol>
+    <symbol id="i-sparkle" viewBox="0 0 24 24">
+      <path d="m12 2 2.2 7.8L22 12l-7.8 2.2L12 22l-2.2-7.8L2 12l7.8-2.2L12 2Z" />
+    </symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24">
+      <path d="M12 3 2 21h20L12 3Z M12 9v5 M12 18v.1" />
+    </symbol>
+    <symbol id="i-download" viewBox="0 0 24 24">
+      <path d="M12 4v12M7 11l5 5 5-5M4 20h16" />
+    </symbol>
+  </svg>
+
+  <header class="topbar" id="topbar">
+    <div class="topbar-left">
+      <div class="brand">
+        <div class="brand-mark">D<span>.</span></div>
+        <div class="brand-name">DiGemo <span>Emotion Studio</span><small>MULTIMODAL AI LAB</small></div>
+      </div>
+      <nav class="nav-links" aria-label="Điều hướng chính">
+        <a class="nav-link" href="/video">
+          <svg class="icon"><use href="#i-video" /></svg><span>Phân tích video</span>
+        </a>
+        <a class="nav-link active" href="/compare" aria-current="page">
+          <svg class="icon"><use href="#i-chart" /></svg><span>So sánh model</span>
+        </a>
+      </nav>
+    </div>
+    <div class="topbar-right">
+      <div class="breadcrumb">Workspace <span>/</span> <strong>So sánh model</strong></div>
+      <div class="status-pill" id="appStatus" role="status" aria-live="polite">
+        <i class="status-dot"></i><span id="appStatusText">Sẵn sàng</span>
+      </div>
+    </div>
+  </header>
+
+  <main class="main">
+    <section class="intro">
+      <div class="eyebrow"><svg class="icon"><use href="#i-sparkle" /></svg>TEST SET · DiGEmo vs DM-CER</div>
+      <h1>So sánh hai model <span>trên cùng nhãn test gốc.</span></h1>
+      <p>Nhãn thật lấy từ pkl gốc (testVid). DiGEmo chạy checkpoint trên đặc trưng pkl, DM-CER đọc file dự đoán
+        (hoặc gọi inference.py của repo DM-CER). Chỉ tính trên các câu mà cả hai model đều có dự đoán.</p>
+    </section>
+
+    <!-- ===== Điều khiển ===== -->
+    <section class="panel step-card">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">BƯỚC 1</div>
+          <h2>Chọn tập dữ liệu và chạy</h2>
+        </div>
+        <span class="tag" id="runTag">CHƯA CHẠY</span>
+      </div>
+
+      <div class="cmp-controls">
+        <div>
+          <span class="opt-label">Tập dữ liệu</span>
+          <div class="chips" id="dsChips" role="radiogroup" aria-label="Tập dữ liệu">
+            <button type="button" class="chip active" data-ds="meld" role="radio" aria-checked="true">MELD</button>
+            <button type="button" class="chip" data-ds="iemocap" role="radio" aria-checked="false">IEMOCAP</button>
+          </div>
+        </div>
+        <label class="manual-switch">
+          <input type="checkbox" id="runDmcer">
+          <span class="toggle" aria-hidden="true"></span>
+          <span>Chạy lại inference DM-CER <small id="dmcerHint">(cần dmcer_code_dir, data_root, ckpt)</small></span>
+        </label>
+        <div class="cmp-actions">
+          <button type="button" id="loadBtn" class="btn btn-outline">Xem kết quả đã lưu</button>
+          <button type="button" id="runBtn" class="btn btn-primary">
+            <svg class="icon"><use href="#i-play" /></svg><span>Chạy so sánh</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="progress hidden" id="progress">
+        <div class="bar"><i id="progressBar" style="width:100%"></i></div>
+        <span id="progressText">Đang chạy DiGEmo + DM-CER trên tập test…</span>
+      </div>
+
+      <details class="cfg" id="cfgBox">
+        <summary>Đường dẫn đang dùng (sửa trong <span id="cfgFile">configs/compare.json</span>)</summary>
+        <div class="cfg-list" id="cfgList"></div>
+      </details>
+      <div class="cmp-error hidden" id="errBox" role="alert"></div>
+    </section>
+
+    <!-- ===== Kết quả ===== -->
+    <section class="panel step-card hidden" id="resultCard">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker" id="resKicker">KẾT QUẢ</div>
+          <h2>Chỉ số tổng <span class="count" id="resN">—</span></h2>
+        </div>
+        <div class="cmp-legend"><span><i class="mdot a"></i>DiGEmo</span><span><i class="mdot b"></i>DM-CER</span></div>
+      </div>
+
+      <div class="cmp-table-wrap"><table class="cmp-table" id="metricTable"></table></div>
+      <p class="hint" id="coverageNote"></p>
+
+      <div class="cmp-sec">
+        <div class="chart-head"><h3>Đúng / sai của hai model trên từng câu</h3><span id="mcnemar"></span></div>
+        <div class="report-stats" id="agreeStats"></div>
+      </div>
+
+      <div class="cmp-sec">
+        <div class="chart-head"><h3>F1 từng lớp</h3><span>THANH TRÊN = DiGEmo · DƯỚI = DM-CER</span></div>
+        <div class="f1-bars" id="f1Bars"></div>
+      </div>
+
+      <div class="cmp-sec">
+        <div class="chart-head">
+          <h3>Ma trận nhầm lẫn</h3>
+          <select id="cmMode" aria-label="Kiểu hiển thị ma trận">
+            <option value="pct" selected>% theo hàng (recall)</option>
+            <option value="count">Số câu</option>
+          </select>
+        </div>
+        <div class="cm-pair" id="cmPair"></div>
+      </div>
+
+      <div class="cmp-sec">
+        <div class="chart-head"><h3>Tải kết quả</h3><span id="resTime"></span></div>
+        <div class="downloads" id="downloads"></div>
+      </div>
+    </section>
+
+    <section class="panel step-card hidden" id="disCard">
+      <div class="panel-heading">
+        <div>
+          <div class="section-kicker">SAI KHÁC</div>
+          <h2>Câu hai model dự đoán khác nhau <span class="count" id="disN">0</span></h2>
+        </div>
+      </div>
+      <div class="dis-toolbar">
+        <div class="chips" id="disChips">
+          <button type="button" class="chip active" data-f="all">Tất cả</button>
+          <button type="button" class="chip" data-f="only_digemo">Chỉ DiGEmo đúng</button>
+          <button type="button" class="chip" data-f="only_dmcer">Chỉ DM-CER đúng</button>
+          <button type="button" class="chip" data-f="both_wrong">Cả hai sai</button>
+        </div>
+        <select id="disTrue" aria-label="Lọc theo nhãn thật"></select>
+        <input type="search" id="disSearch" placeholder="Tìm text / id…" aria-label="Tìm">
+      </div>
+      <div class="cmp-table-wrap"><table class="cmp-table dis" id="disTable"></table></div>
+      <div class="dis-more"><span id="disShown"></span><button type="button" class="btn btn-outline btn-sm hidden" id="disMore">Xem thêm 100 câu</button></div>
+    </section>
+
+    <section class="panel step-card hidden" id="logCard">
+      <details>
+        <summary class="hint" style="cursor:pointer">Log lần chạy</summary>
+        <div class="cmp-log" id="logBox"></div>
+      </details>
+    </section>
+
+    <footer>
+      <span>DiGemo Emotion Studio · Research prototype</span>
+      <span>So sánh trên tập test MELD / IEMOCAP</span>
+    </footer>
+  </main>
+
+  <div class="chart-tip hidden" id="chartTip" role="tooltip"></div>
+
+  <div class="toast hidden" id="toast" role="alert">
+    <svg class="icon"><use href="#i-alert" /></svg>
+    <span id="toastText"></span>
+    <button id="toastClose" aria-label="Đóng">×</button>
+  </div>
+
+  <script defer src="/static/compare.js?v=1"></script>
+</body>
+
+</html>

@@ -1,0 +1,438 @@
+{
+ "dataset": "iemocap",
+ "labels": [
+  "neu",
+  "fru",
+  "ang",
+  "sad",
+  "hap",
+  "exc"
+ ],
+ "label_maps": {
+  "digemo_id2label": [
+   "hap",
+   "sad",
+   "neu",
+   "ang",
+   "exc",
+   "fru"
+  ],
+  "dmcer_id2label": [
+   "neu",
+   "fru",
+   "ang",
+   "sad",
+   "hap",
+   "exc"
+  ]
+ },
+ "coverage": {
+  "truth": 1623,
+  "digemo": 1623,
+  "dmcer": 1623,
+  "common": 1623,
+  "dmcer_extra_keys": 0,
+  "label_mismatch_vs_dmcer_file": 0
+ },
+ "models": {
+  "DiGEmo": {
+   "n": 1623,
+   "accuracy": 0.7190388170055453,
+   "weighted_f1": 0.7189596101916463,
+   "macro_f1": 0.7046425444879095,
+   "per_class": {
+    "neu": {
+     "f1": 0.7144686299615877,
+     "precision": 0.7027707808564232,
+     "recall": 0.7265625,
+     "support": 384
+    },
+    "fru": {
+     "f1": 0.6932367149758454,
+     "precision": 0.6420581655480985,
+     "recall": 0.7532808398950132,
+     "support": 381
+    },
+    "ang": {
+     "f1": 0.6875,
+     "precision": 0.7333333333333333,
+     "recall": 0.6470588235294118,
+     "support": 170
+    },
+    "sad": {
+     "f1": 0.8138528138528138,
+     "precision": 0.8663594470046083,
+     "recall": 0.7673469387755102,
+     "support": 245
+    },
+    "hap": {
+     "f1": 0.5303030303030303,
+     "precision": 0.5833333333333334,
+     "recall": 0.4861111111111111,
+     "support": 144
+    },
+    "exc": {
+     "f1": 0.7884940778341794,
+     "precision": 0.797945205479452,
+     "recall": 0.7792642140468228,
+     "support": 299
+    }
+   },
+   "confusion": [
+    [
+     279,
+     61,
+     6,
+     13,
+     15,
+     10
+    ],
+    [
+     45,
+     287,
+     34,
+     12,
+     1,
+     2
+    ],
+    [
+     5,
+     55,
+     110,
+     0,
+     0,
+     0
+    ],
+    [
+     19,
+     36,
+     0,
+     188,
+     2,
+     0
+    ],
+    [
+     20,
+     3,
+     0,
+     4,
+     70,
+     47
+    ],
+    [
+     29,
+     5,
+     0,
+     0,
+     32,
+     233
+    ]
+   ]
+  },
+  "DM-CER": {
+   "n": 1623,
+   "accuracy": 0.6931608133086876,
+   "weighted_f1": 0.6944168798633943,
+   "macro_f1": 0.6790102452756189,
+   "per_class": {
+    "neu": {
+     "f1": 0.7002801120448179,
+     "precision": 0.7575757575757576,
+     "recall": 0.6510416666666666,
+     "support": 384
+    },
+    "fru": {
+     "f1": 0.6744791666666666,
+     "precision": 0.6692506459948321,
+     "recall": 0.6797900262467191,
+     "support": 381
+    },
+    "ang": {
+     "f1": 0.6759002770083102,
+     "precision": 0.6387434554973822,
+     "recall": 0.7176470588235294,
+     "support": 170
+    },
+    "sad": {
+     "f1": 0.8067226890756303,
+     "precision": 0.8311688311688312,
+     "recall": 0.7836734693877551,
+     "support": 245
+    },
+    "hap": {
+     "f1": 0.4850498338870432,
+     "precision": 0.46496815286624205,
+     "recall": 0.5069444444444444,
+     "support": 144
+    },
+    "exc": {
+     "f1": 0.731629392971246,
+     "precision": 0.7003058103975535,
+     "recall": 0.7658862876254181,
+     "support": 299
+    }
+   },
+   "confusion": [
+    [
+     250,
+     55,
+     12,
+     24,
+     17,
+     26
+    ],
+    [
+     51,
+     259,
+     53,
+     6,
+     5,
+     7
+    ],
+    [
+     3,
+     40,
+     122,
+     4,
+     1,
+     0
+    ],
+    [
+     14,
+     27,
+     4,
+     192,
+     6,
+     2
+    ],
+    [
+     2,
+     4,
+     0,
+     2,
+     73,
+     63
+    ],
+    [
+     10,
+     2,
+     0,
+     3,
+     55,
+     229
+    ]
+   ]
+  }
+ },
+ "full_coverage": {
+  "DiGEmo": {
+   "n": 1623,
+   "accuracy": 0.7190388170055453,
+   "weighted_f1": 0.7189596101916463,
+   "macro_f1": 0.7046425444879095,
+   "per_class": {
+    "neu": {
+     "f1": 0.7144686299615877,
+     "precision": 0.7027707808564232,
+     "recall": 0.7265625,
+     "support": 384
+    },
+    "fru": {
+     "f1": 0.6932367149758454,
+     "precision": 0.6420581655480985,
+     "recall": 0.7532808398950132,
+     "support": 381
+    },
+    "ang": {
+     "f1": 0.6875,
+     "precision": 0.7333333333333333,
+     "recall": 0.6470588235294118,
+     "support": 170
+    },
+    "sad": {
+     "f1": 0.8138528138528138,
+     "precision": 0.8663594470046083,
+     "recall": 0.7673469387755102,
+     "support": 245
+    },
+    "hap": {
+     "f1": 0.5303030303030303,
+     "precision": 0.5833333333333334,
+     "recall": 0.4861111111111111,
+     "support": 144
+    },
+    "exc": {
+     "f1": 0.7884940778341794,
+     "precision": 0.797945205479452,
+     "recall": 0.7792642140468228,
+     "support": 299
+    }
+   },
+   "confusion": [
+    [
+     279,
+     61,
+     6,
+     13,
+     15,
+     10
+    ],
+    [
+     45,
+     287,
+     34,
+     12,
+     1,
+     2
+    ],
+    [
+     5,
+     55,
+     110,
+     0,
+     0,
+     0
+    ],
+    [
+     19,
+     36,
+     0,
+     188,
+     2,
+     0
+    ],
+    [
+     20,
+     3,
+     0,
+     4,
+     70,
+     47
+    ],
+    [
+     29,
+     5,
+     0,
+     0,
+     32,
+     233
+    ]
+   ]
+  },
+  "DM-CER": {
+   "n": 1623,
+   "accuracy": 0.6931608133086876,
+   "weighted_f1": 0.6944168798633943,
+   "macro_f1": 0.6790102452756189,
+   "per_class": {
+    "neu": {
+     "f1": 0.7002801120448179,
+     "precision": 0.7575757575757576,
+     "recall": 0.6510416666666666,
+     "support": 384
+    },
+    "fru": {
+     "f1": 0.6744791666666666,
+     "precision": 0.6692506459948321,
+     "recall": 0.6797900262467191,
+     "support": 381
+    },
+    "ang": {
+     "f1": 0.6759002770083102,
+     "precision": 0.6387434554973822,
+     "recall": 0.7176470588235294,
+     "support": 170
+    },
+    "sad": {
+     "f1": 0.8067226890756303,
+     "precision": 0.8311688311688312,
+     "recall": 0.7836734693877551,
+     "support": 245
+    },
+    "hap": {
+     "f1": 0.4850498338870432,
+     "precision": 0.46496815286624205,
+     "recall": 0.5069444444444444,
+     "support": 144
+    },
+    "exc": {
+     "f1": 0.731629392971246,
+     "precision": 0.7003058103975535,
+     "recall": 0.7658862876254181,
+     "support": 299
+    }
+   },
+   "confusion": [
+    [
+     250,
+     55,
+     12,
+     24,
+     17,
+     26
+    ],
+    [
+     51,
+     259,
+     53,
+     6,
+     5,
+     7
+    ],
+    [
+     3,
+     40,
+     122,
+     4,
+     1,
+     0
+    ],
+    [
+     14,
+     27,
+     4,
+     192,
+     6,
+     2
+    ],
+    [
+     2,
+     4,
+     0,
+     2,
+     73,
+     63
+    ],
+    [
+     10,
+     2,
+     0,
+     3,
+     55,
+     229
+    ]
+   ]
+  }
+ },
+ "agreement": {
+  "both_correct": 951,
+  "only_digemo": 216,
+  "only_dmcer": 174,
+  "both_wrong": 282,
+  "agree_rate": 0.7245841035120147,
+  "both_wrong_same_label": 225,
+  "mcnemar": {
+   "chi2": 4.31025641025641,
+   "p": 0.03788325121599671
+  }
+ },
+ "created": "2026-11-26 07:57:02",
+ "sources": {
+  "pkl": "E:\\Do_an\\DEMO\\demo_meld\\data\\feats\\iemocap_multi_features.pkl",
+  "digemo": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\digemo_iemocap.pth",
+  "dmcer": "E:\\Do_an\\DEMO\\demo_meld\\results\\dmcer\\iemocap_pred_test.tsv",
+  "dmcer_ran": true
+ },
+ "dmcer_log": "1618  Ses05M_script03_2  Ses05M_script03_2_M043              2        ang\n1619  Ses05M_script03_2  Ses05M_script03_2_F043              2        ang\n1620  Ses05M_script03_2  Ses05M_script03_2_M044              2        ang\n1621  Ses05M_script03_2  Ses05M_script03_2_F044              2        ang\n1622  Ses05M_script03_2  Ses05M_script03_2_M045              2        ang\n\n[1623 rows x 4 columns]\nTSV de predicciones escrito en E:\\Do_an\\DEMO\\demo_meld\\results\\dmcer\\iemocap_pred_test.tsv\n\n\ninfer:   0%|          | 0/4 [00:00<?, ?it/s]E:\\Do_an\\DEMO\\demo_meld\\Dynamic-Multimodal-Causal-Graph-Framework-ERC\\code\\IEMOCAP\\model.py:83: FutureWarning: `torch.cuda.amp.autocast(args...)` is deprecated. Please use `torch.amp.autocast('cuda', args...)` instead.\n  with torch.cuda.amp.autocast(enabled=False):\n\ninfer:  25%|##5       | 1/4 [00:00<00:00,  4.09it/s]\ninfer: 100%|##########| 4/4 [00:00<00:00, 12.00it/s]",
+ "seconds": 3.7
+}
