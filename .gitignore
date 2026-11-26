@@ -41,11 +41,6 @@ wandb/
 .DS_Store
 Thumbs.db
 
-
-# Ignore MELD training data
-data/csv/*.csv
-data/utterance_timestamps.csv
-
 # Python cache
 __pycache__/
 *.py[cod]
