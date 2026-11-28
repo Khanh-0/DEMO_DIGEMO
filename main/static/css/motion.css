@@ -1,0 +1,118 @@
+/* ============================================================
+   DiGemo Emotion Studio — Motion (kept light; no work during video playback)
+   ============================================================ */
+
+/* Emotion Studio finish layer */
+:root{--bg:#f5f7fb;--card:#fff;--ink:#142138;--sub:#47566c;--muted:#617188;--border:#dfe6ef;--border-2:#c7d4e9;--primary:#284cc3;--primary-hover:#1e3fae;--primary-soft:#eaf0ff;--shadow-card:0 12px 30px rgba(20,33,56,.06)}
+body{background:var(--bg);color:var(--ink)}
+.topbar{height:72px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--border);padding-inline:max(24px,calc((100vw - 1200px)/2))}.main{max-width:1248px;padding:0 24px}.intro{padding:38px 0 26px}.intro h1{font-size:clamp(2rem,4vw,2.75rem);color:var(--ink);max-width:720px}.intro>p{font-size:1rem;color:var(--muted);max-width:680px}.eyebrow{color:var(--primary);font-size:11px;letter-spacing:.14em}
+.workspace{display:grid;grid-template-columns:minmax(0,2fr) minmax(300px,1fr);gap:24px;align-items:stretch}.mode-panel{padding-bottom:24px}.panel{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow-card)}.workspace>.panel{padding:24px}.panel-heading{margin-bottom:20px}.panel-heading h2{font-size:19px;color:var(--ink)}.section-kicker{color:var(--primary);font-size:11px;letter-spacing:.13em;font-weight:800;margin-bottom:6px}.panel-description{color:var(--muted);font-size:13px;margin-top:6px}.tag{border-color:#b9c8ef;background:var(--primary-soft);color:var(--primary)}
+.video-card{display:flex;flex-direction:column}.video-stage{background:#0c1628;border-radius:12px;min-height:330px;display:grid;place-items:center;overflow:hidden}.video-stage video{width:100%;max-height:430px;object-fit:contain}.video-empty{color:#dbe5f5;text-align:center;font-weight:700}.video-empty span{display:block;color:#91a3bd;font-size:12px;font-weight:400;margin-top:6px}.settings-card{display:flex;flex-direction:column}.drop{border:1px dashed #aebed8;background:#f8faff;border-radius:12px;min-height:126px;transition:border-color .2s,background .2s,transform .2s}.drop:hover,.drop.drag-over{border-color:var(--primary);background:var(--primary-soft);transform:translateY(-2px)}.drop input{position:absolute;inset:0;opacity:0;cursor:pointer}.drop strong{color:var(--ink)}.drop small{color:var(--muted)}.compact-drop{position:relative}.compact-drop .drop-icon{display:block;color:var(--primary);font-size:25px;line-height:1}.action-stack{display:grid;gap:10px;margin-top:auto}.btn,.check-btn,.upload-button{min-height:44px;border-radius:9px!important;font-weight:700}.btn-primary,.check-btn{background:var(--primary);color:#fff}.btn-primary:hover,.check-btn:hover:not(:disabled){background:var(--primary-hover);transform:translateY(-1px)}.btn-secondary,.upload-button{background:#fff;color:var(--ink);border:1px solid var(--border-2)}
+.results-card{margin-top:0;padding:24px;overflow:hidden}.results-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:18px}.results-actions{display:flex;align-items:center;gap:12px}.result-count{color:var(--muted);font-size:12px;font-weight:700;white-space:nowrap}.table-wrap,.offline-table-wrap,.online-events-wrap{overflow:auto;border:1px solid var(--border);border-radius:10px}.events-table{min-width:760px;border-collapse:collapse;width:100%;background:#fff}.events-table th{background:#f5f7fb;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.05em;text-align:left}.events-table th,.events-table td{padding:13px 14px;border-bottom:1px solid var(--border);vertical-align:top}.events-table td{color:var(--ink);font-size:13px}.empty-cell{color:var(--muted)!important;text-align:center;padding:30px!important}.status-line{color:var(--muted);font-size:13px;min-height:22px;margin:14px 0}.danger{color:#9b3039!important}.field{display:grid;gap:6px;margin-bottom:14px}.field label{font-size:12px;font-weight:700;color:var(--sub)}.field small{font-size:11px;color:var(--muted)}.toolbar{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:18px;background:#f8faff;border:1px solid var(--border);border-radius:12px}.toolbar .upload-button,.toolbar button{display:flex;align-items:center;justify-content:center}.skip-link{position:absolute;left:12px;top:8px;z-index:100;padding:8px 12px;background:var(--ink);color:#fff;transform:translateY(-150%)}.skip-link:focus{transform:none}
+@media (max-width:1099px){.workspace{grid-template-columns:1fr}.settings-card{order:-1}.video-stage{min-height:280px}}@media (max-width:640px){.topbar{height:auto;min-height:72px;padding:14px 16px}.topbar-left{flex-wrap:wrap;gap:12px}.nav-links{order:3;width:100%}.nav-link{flex:1;justify-content:center}.main{padding:0 16px}.intro{padding:28px 0 20px}.intro h1{font-size:2rem}.workspace>.panel,.results-card{padding:16px}.toolbar{grid-template-columns:1fr}.online-actions{display:grid!important;grid-template-columns:1fr}.online-actions>*{width:100%;text-align:center}.results-heading{display:block}.results-actions{margin-top:12px;justify-content:space-between}.video-stage{min-height:220px}.events-table{min-width:760px}}@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.intro .eyebrow,
+.intro h1,
+.intro>p,
+.stepper {
+  animation: fadeUp 0.4s var(--ease-out) both;
+}
+
+.intro h1 {
+  animation-delay: 0.05s;
+}
+
+.intro>p {
+  animation-delay: 0.1s;
+}
+
+.stepper {
+  animation-delay: 0.14s;
+}
+
+/* Cards fade in when revealed (opacity only: cheap) */
+.step-card,
+.analytics-block {
+  animation: fadeIn 0.3s ease both;
+}
+
+/* Progress */
+@keyframes progressPulse {
+  50% {
+    opacity: 0.7;
+  }
+}
+
+.progress:not(.hidden) .bar i {
+  animation: progressPulse 1.5s infinite;
+}
+
+/* Donut / bars */
+#donut circle,
+.donut-wrap svg circle {
+  transition: stroke-dasharray 0.6s var(--ease-out);
+}
+
+/* Topbar shadow once scrolled */
+.topbar {
+  transition: box-shadow var(--dur-normal);
+}
+
+.topbar.scrolled {
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.08);
+}
+
+/* Row flash after insert */
+@keyframes rowFlash {
+  from {
+    background: var(--primary-soft);
+  }
+
+  to {
+    background: var(--card);
+  }
+}
+
+.utt-row.flash {
+  animation: rowFlash 0.8s var(--ease-out);
+}
+
+/* Pause decorative animation while the video is playing to protect FPS */
+body.video-playing .status-pill.busy .status-dot,
+body.video-playing .progress .bar i {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -29,8 +29,9 @@ demo_meld/
 ├── README.md
 ├── requirements.txt
 ├── start_web.ps1                  # chạy nhanh web
-├── checkpoints/                   # trọng số (không đưa lên git)
+├── checkpoints/                   # trọng số
 │   ├── digemo_meld.pth            # DiGemo (MELD)
+│   ├── digemo_iemocap.pth         # DiGemo (IEMOCAP)
 │   ├── text_ft.pt                 # RoBERTa-base đã fine-tune
 │   └── face_fer.pt                # DenseNet FER+
 ├── data/

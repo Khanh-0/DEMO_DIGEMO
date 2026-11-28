@@ -1,0 +1,11 @@
+{
+ "Joey": 0,
+ "Ross": 1,
+ "Rachel": 2,
+ "Phoebe": 3,
+ "Monica": 4,
+ "Chandler": 5,
+ "Janice": 6,
+ "Carol": 7,
+ "__other__": 8
+}

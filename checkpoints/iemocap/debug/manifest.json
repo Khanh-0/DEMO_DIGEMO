@@ -1,0 +1,82 @@
+[
+  {
+    "session": 1,
+    "dialogue": "Ses01F_impro01",
+    "actor_prefix": "F",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session1_F_reference.png",
+    "f_utterance": "Ses01F_impro01_F000",
+    "m_utterance": "Ses01F_impro01_M000"
+  },
+  {
+    "session": 1,
+    "dialogue": "Ses01M_impro01",
+    "actor_prefix": "M",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session1_M_reference.png",
+    "f_utterance": "Ses01M_impro01_F000",
+    "m_utterance": "Ses01M_impro01_M000"
+  },
+  {
+    "session": 2,
+    "dialogue": "Ses02F_impro01",
+    "actor_prefix": "F",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session2_F_reference.png",
+    "f_utterance": "Ses02F_impro01_F000",
+    "m_utterance": "Ses02F_impro01_M000"
+  },
+  {
+    "session": 2,
+    "dialogue": "Ses02M_impro01",
+    "actor_prefix": "M",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session2_M_reference.png",
+    "f_utterance": "Ses02M_impro01_F000",
+    "m_utterance": "Ses02M_impro01_M000"
+  },
+  {
+    "session": 3,
+    "dialogue": "Ses03F_impro01",
+    "actor_prefix": "F",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session3_F_reference.png",
+    "f_utterance": "Ses03F_impro01_F002",
+    "m_utterance": "Ses03F_impro01_M001"
+  },
+  {
+    "session": 3,
+    "dialogue": "Ses03M_impro01",
+    "actor_prefix": "M",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session3_M_reference.png",
+    "f_utterance": "Ses03M_impro01_F000",
+    "m_utterance": "Ses03M_impro01_M000"
+  },
+  {
+    "session": 4,
+    "dialogue": "Ses04F_impro01",
+    "actor_prefix": "F",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session4_F_reference.png",
+    "f_utterance": "Ses04F_impro01_F001",
+    "m_utterance": "Ses04F_impro01_M000"
+  },
+  {
+    "session": 4,
+    "dialogue": "Ses04M_impro01",
+    "actor_prefix": "M",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session4_M_reference.png",
+    "f_utterance": "Ses04M_impro01_F000",
+    "m_utterance": "Ses04M_impro01_M000"
+  },
+  {
+    "session": 5,
+    "dialogue": "Ses05F_impro01",
+    "actor_prefix": "F",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session5_F_reference.png",
+    "f_utterance": "Ses05F_impro01_F000",
+    "m_utterance": "Ses05F_impro01_M000"
+  },
+  {
+    "session": 5,
+    "dialogue": "Ses05M_impro01",
+    "actor_prefix": "M",
+    "reference_image": "E:\\Do_an\\DEMO\\demo_meld\\checkpoints\\iemocap\\debug_sides\\Session5_M_reference.png",
+    "f_utterance": "Ses05M_impro01_F000",
+    "m_utterance": "Ses05M_impro01_M004"
+  }
+]
